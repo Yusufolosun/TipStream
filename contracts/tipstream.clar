@@ -8,6 +8,7 @@
 (define-constant err-insufficient-balance (err u102))
 (define-constant err-transfer-failed (err u103))
 (define-constant err-not-found (err u104))
+(define-constant err-user-blocked (err u106))
 
 ;; Fee percentage (0.5% = 50 basis points)
 (define-constant fee-basis-points u50)
@@ -35,6 +36,8 @@
 (define-map user-total-sent principal uint)
 (define-map user-total-received principal uint)
 
+(define-map blocked-users { blocker: principal, blocked: principal } bool)
+
 ;; Private Functions
 (define-private (calculate-fee (amount uint))
     (/ (* amount fee-basis-points) basis-points-divisor)
@@ -54,6 +57,7 @@
         )
         (asserts! (> amount u0) err-invalid-amount)
         (asserts! (not (is-eq tx-sender recipient)) err-invalid-amount)
+        (asserts! (not (default-to false (map-get? blocked-users { blocker: recipient, blocked: tx-sender }))) err-user-blocked)
         
         (try! (stx-transfer? net-amount tx-sender recipient))
         (try! (stx-transfer? fee tx-sender contract-owner))
@@ -82,9 +86,24 @@
     )
 )
 
+;; Privacy Functions
+(define-public (toggle-block-user (user principal))
+    (let
+        (
+            (is-blocked (default-to false (map-get? blocked-users { blocker: tx-sender, blocked: user })))
+        )
+        (map-set blocked-users { blocker: tx-sender, blocked: user } (not is-blocked))
+        (ok (not is-blocked))
+    )
+)
+
 ;; Read-only Functions
 (define-read-only (get-tip (tip-id uint))
     (map-get? tips { tip-id: tip-id })
+)
+
+(define-read-only (is-user-blocked (blocker principal) (user principal))
+    (default-to false (map-get? blocked-users { blocker: blocker, blocked: user }))
 )
 
 (define-read-only (get-user-stats (user principal))
