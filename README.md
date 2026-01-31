@@ -13,8 +13,10 @@ A micro-tipping platform built on the Stacks blockchain.
 ## Deployment Status
 
 - **Smart Contract**: `tipstream.clar`
+- **Address**: `SP31PKQVQZVZCK3FM3NH67CGD6G1FMR17VQVS2W5T.tipstream`
 - **Network**: Mainnet (Secured by Bitcoin)
-- **Status**: Ready for Production
+- **Status**: ✅ Deployed
+- **Transaction ID**: [0xf7ac0877ce65494779264fb0172023facd101b639ad5ae8bbd71e102387033ef](https://explorer.hiro.so/txid/0xf7ac0877ce65494779264fb0172023facd101b639ad5ae8bbd71e102387033ef?chain=mainnet)
 
 ## Quick Start
 
