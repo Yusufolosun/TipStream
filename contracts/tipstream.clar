@@ -67,7 +67,7 @@
                 amount: amount,
                 message: message,
                 block-height: block-height,
-                timestamp: (unwrap-panic (get-block-info? time block-height))
+                timestamp: (default-to u0 (get-block-info? time (- block-height u1)))
             }
         )
         
