@@ -9,7 +9,7 @@ import {
 import { network, appDetails } from '../utils/stacks';
 
 // Use a placeholder address for now, will be updated during deployment
-const CONTRACT_ADDRESS = 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM';
+const CONTRACT_ADDRESS = 'SP31PKQVQZVZCK3FM3NH67CGD6G1FMR17VQVS2W5T';
 const CONTRACT_NAME = 'tipstream';
 
 export default function SendTip() {
