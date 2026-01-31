@@ -102,6 +102,7 @@ describe("TipStream Contract Tests", () => {
         });
     });
 
+<<<<<<< HEAD
     describe("User Profiles", () => {
         it("can set and get user profile", () => {
             const { result } = simnet.callPublicFn(
@@ -192,6 +193,55 @@ describe("TipStream Contract Tests", () => {
             );
 
             expect(result).toBeErr(Cl.uint(104));
+        });
+    });
+
+    describe("Privacy Controls", () => {
+        it("can block and unblock a user", () => {
+            // Wallet 2 blocks Wallet 1
+            const { result: blockResult } = simnet.callPublicFn(
+                "tipstream",
+                "toggle-block-user",
+                [Cl.principal(wallet1)],
+                wallet2
+            );
+            expect(blockResult).toBeOk(Cl.bool(true));
+
+            // Check if blocked
+            const { result: isBlocked } = simnet.callReadOnlyFn(
+                "tipstream",
+                "is-user-blocked",
+                [Cl.principal(wallet2), Cl.principal(wallet1)],
+                wallet1
+            );
+            expect(isBlocked).toBeBool(true);
+
+            // Wallet 1 tries to tip Wallet 2
+            const { result: tipResult } = simnet.callPublicFn(
+                "tipstream",
+                "send-tip",
+                [Cl.principal(wallet2), Cl.uint(1000000), Cl.stringUtf8("Let me tip you!")],
+                wallet1
+            );
+            expect(tipResult).toBeErr(Cl.uint(106));
+
+            // Wallet 2 unblocks Wallet 1
+            const { result: unblockResult } = simnet.callPublicFn(
+                "tipstream",
+                "toggle-block-user",
+                [Cl.principal(wallet1)],
+                wallet2
+            );
+            expect(unblockResult).toBeOk(Cl.bool(false));
+
+            // Wallet 1 can now tip Wallet 2
+            const { result: retryTipResult } = simnet.callPublicFn(
+                "tipstream",
+                "send-tip",
+                [Cl.principal(wallet2), Cl.uint(1000000), Cl.stringUtf8("Finally!")],
+                wallet1
+            );
+            expect(retryTipResult).toBeOk(Cl.uint(0));
         });
     });
 });
