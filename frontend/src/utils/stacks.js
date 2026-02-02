@@ -1,4 +1,4 @@
-import { AppConfig, UserSession, showConnect } from '@stacks/connect';
+import { AppConfig, UserSession } from '@stacks/connect';
 import { STACKS_MAINNET } from '@stacks/network';
 
 const appConfig = new AppConfig(['store_write', 'publish_data']);
@@ -11,15 +11,27 @@ export const appDetails = {
     icon: window.location.origin + '/logo.png',
 };
 
-export function authenticate() {
-    showConnect({
-        appDetails,
-        redirectTo: '/',
-        onFinish: () => {
-            window.location.reload();
-        },
-        userSession,
-    });
+export async function authenticate() {
+    console.log('authenticate() called');
+    console.log('appDetails:', appDetails);
+    console.log('userSession:', userSession);
+
+    try {
+        const { connect } = await import('@stacks/connect');
+
+        await connect({
+            appDetails,
+            redirectTo: '/',
+            onFinish: () => {
+                console.log('Wallet connected successfully!');
+                window.location.reload();
+            },
+            userSession,
+        });
+        console.log('connect() executed');
+    } catch (error) {
+        console.error('Error in authenticate():', error);
+    }
 }
 
 export function getUserData() {

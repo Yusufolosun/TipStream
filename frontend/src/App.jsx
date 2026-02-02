@@ -19,10 +19,15 @@ function App() {
   }, []);
 
   const handleAuth = () => {
+    console.log('🖱️ Connect Wallet button clicked!');
+    console.log('👤 Current userData:', userData);
+
     if (userData) {
+      console.log('🔌 Disconnecting wallet...');
       disconnect();
       setUserData(null);
     } else {
+      console.log('🔗 Calling authenticate()...');
       authenticate();
     }
   };
