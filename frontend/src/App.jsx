@@ -6,6 +6,7 @@ import TipHistory from './components/TipHistory';
 import PlatformStats from './components/PlatformStats';
 import RecentTips from './components/RecentTips';
 import Leaderboard from './components/Leaderboard';
+import { AnimatedHero } from './components/ui/animated-hero';
 
 function App() {
   const [userData, setUserData] = useState(null);
@@ -48,8 +49,8 @@ function App() {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center space-x-2 px-6 py-3 rounded-[1.5rem] text-sm font-bold transition-all duration-300 ${activeTab === tab.id
-                        ? 'bg-slate-900 text-white shadow-lg shadow-slate-200'
-                        : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                      ? 'bg-slate-900 text-white shadow-lg shadow-slate-200'
+                      : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
                       }`}
                   >
                     <span>{tab.icon}</span>
@@ -70,44 +71,7 @@ function App() {
             </div>
           </div>
         ) : (
-          <div className="max-w-4xl mx-auto text-center py-20 animate-in zoom-in-95 duration-1000">
-            <div className="mb-12 relative flex justify-center">
-              <div className="absolute inset-0 bg-blue-400 blur-[120px] opacity-20 rounded-full animate-pulse"></div>
-              <div className="bg-white p-8 rounded-[2.5rem] shadow-2xl relative z-10 border border-gray-100">
-                <svg className="h-24 w-24 text-blue-600 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-            </div>
-
-            <h2 className="text-6xl font-black mb-6 text-slate-900 tracking-tight leading-tight">
-              Support Creators with <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Micro-Tips</span>
-            </h2>
-            <p className="text-xl text-slate-500 mb-12 max-w-2xl mx-auto leading-relaxed">
-              TipStream is the fastest way to send STX tips to your favorite creators on the Stacks blockchain. Secured by Bitcoin.
-            </p>
-
-            <button
-              onClick={handleAuth}
-              className="bg-slate-900 hover:bg-slate-800 text-white px-12 py-5 rounded-2xl text-xl font-bold shadow-2xl hover:shadow-slate-200 transition-all transform hover:-translate-y-1 active:scale-95"
-            >
-              Get Started Now
-            </button>
-
-            <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
-              {[
-                { title: "Ultra Fast", icon: "⚡", desc: "Transactions complete on Stacks speed" },
-                { title: "Low Fees", icon: "💎", desc: "0.5% platform fee for creators" },
-                { title: "Secure", icon: "🛡️", desc: "Settled on the Bitcoin network" }
-              ].map((feature, i) => (
-                <div key={i} className="bg-white/50 backdrop-blur-sm p-6 rounded-2xl border border-gray-100">
-                  <div className="text-3xl mb-3">{feature.icon}</div>
-                  <h3 className="font-bold text-slate-800 mb-1">{feature.title}</h3>
-                  <p className="text-sm text-slate-500">{feature.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+          <AnimatedHero onGetStarted={handleAuth} />
         )}
       </main>
 
