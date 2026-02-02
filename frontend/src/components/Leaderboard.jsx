@@ -11,7 +11,7 @@ export default function Leaderboard() {
                 </p>
 
                 <div className="bg-slate-50 rounded-3xl p-8 border border-slate-100 mb-8">
-                    <h3 className="text-blue-600 font-black uppercase tracking-widest text-xs mb-4">Coming Next</h3>
+                    <h3 className="text-gray-900 font-black uppercase tracking-widest text-xs mb-4">Coming Next</h3>
                     <div className="space-y-3">
                         {['On-chain ranking engine', 'Verified creator badges', 'Exclusive reward tiers'].map((item, i) => (
                             <div key={i} className="flex items-center text-slate-700 font-bold bg-white/80 p-3 rounded-xl border border-white">

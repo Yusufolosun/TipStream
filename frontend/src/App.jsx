@@ -43,7 +43,7 @@ function App() {
         {userData ? (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex flex-wrap justify-center gap-3 mb-16">
-              <div className="inline-flex p-1.5 bg-white/80 backdrop-blur-md rounded-[2rem] shadow-xl shadow-blue-500/5 border border-gray-100">
+              <div className="inline-flex p-1.5 bg-white/80 backdrop-blur-md rounded-[2rem] shadow-xl shadow-gray-500/5 border border-gray-100">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
@@ -79,9 +79,9 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row justify-between items-center text-gray-500 text-sm font-medium">
           <p>© 2026 TipStream - Built with Transparency</p>
           <div className="flex space-x-8 mt-4 md:mt-0">
-            <a href="#" className="hover:text-blue-600 transition-colors">Twitter</a>
-            <a href="#" className="hover:text-blue-600 transition-colors">GitHub</a>
-            <a href="#" className="hover:text-blue-600 transition-colors">Documentation</a>
+            <a href="#" className="hover:text-gray-900 transition-colors">Twitter</a>
+            <a href="#" className="hover:text-gray-900 transition-colors">GitHub</a>
+            <a href="#" className="hover:text-gray-900 transition-colors">Documentation</a>
           </div>
         </div>
       </footer>

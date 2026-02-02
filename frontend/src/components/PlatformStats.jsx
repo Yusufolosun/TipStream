@@ -54,20 +54,20 @@ export default function PlatformStats() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="bg-blue-50/50 p-8 rounded-3xl border border-blue-100/50 group hover:scale-[1.02] transition-all">
-                    <p className="text-sm font-bold text-blue-600 mb-2 uppercase tracking-tighter">Total Tips</p>
-                    <p className="text-5xl font-black text-blue-900">
+                <div className="bg-gray-50/50 p-8 rounded-3xl border border-gray-100/50 group hover:scale-[1.02] transition-all">
+                    <p className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-tighter">Total Tips</p>
+                    <p className="text-5xl font-black text-black">
                         {stats['total-tips'].value.toLocaleString()}
                     </p>
                 </div>
 
-                <div className="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100/50 group hover:scale-[1.02] transition-all">
-                    <p className="text-sm font-bold text-indigo-600 mb-2 uppercase tracking-tighter">Total Volume</p>
+                <div className="bg-gray-100/50 p-8 rounded-3xl border border-gray-200/50 group hover:scale-[1.02] transition-all">
+                    <p className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-tighter">Total Volume</p>
                     <div className="flex items-baseline space-x-2">
-                        <p className="text-5xl font-black text-indigo-900">
+                        <p className="text-5xl font-black text-black">
                             {(stats['total-volume'].value / 1000000).toFixed(2)}
                         </p>
-                        <span className="text-xl font-bold text-indigo-400">STX</span>
+                        <span className="text-xl font-bold text-gray-600">STX</span>
                     </div>
                 </div>
 

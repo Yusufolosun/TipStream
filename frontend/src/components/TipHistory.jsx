@@ -38,7 +38,7 @@ export default function TipHistory({ userAddress }) {
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mb-4"></div>
                 <p className="text-gray-500 font-medium">Loading activity...</p>
             </div>
         );
@@ -59,14 +59,14 @@ export default function TipHistory({ userAddress }) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                     <div className="flex items-center mb-4">
-                        <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-4">
-                            <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center mr-4">
+                            <svg className="h-6 w-6 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                             </svg>
                         </div>
                         <h3 className="text-lg font-semibold text-gray-700">Tips Sent</h3>
                     </div>
-                    <p className="text-4xl font-black text-blue-600 leading-none mb-3">
+                    <p className="text-4xl font-black text-gray-900 leading-none mb-3">
                         {stats['tips-sent'].value}
                     </p>
                     <p className="text-sm font-medium text-gray-500">

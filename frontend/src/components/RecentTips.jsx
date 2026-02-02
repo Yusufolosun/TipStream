@@ -84,10 +84,10 @@ export default function RecentTips() {
             ) : (
                 <div className="space-y-6">
                     {tips.map((tip, index) => (
-                        <div key={index} className="group p-6 bg-slate-50/50 hover:bg-white hover:shadow-xl hover:shadow-blue-500/5 rounded-3xl border border-transparent hover:border-blue-100 transition-all duration-300">
+                        <div key={index} className="group p-6 bg-slate-50/50 hover:bg-white hover:shadow-xl hover:shadow-gray-500/5 rounded-3xl border border-transparent hover:border-gray-100 transition-all duration-300">
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div className="flex items-center space-x-4">
-                                    <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+                                    <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-gray-900 to-black flex items-center justify-center text-white shadow-lg shadow-gray-500/20">
                                         <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
@@ -101,7 +101,7 @@ export default function RecentTips() {
                                             <span>{truncateAddress(tip.recipient)}</span>
                                         </div>
                                         <p className="text-2xl font-black text-slate-900 mt-1">
-                                            {(tip.amount.value / 1000000).toFixed(4)} <span className="text-blue-600 text-lg">STX</span>
+                                            {(tip.amount.value / 1000000).toFixed(4)} <span className="text-gray-900 text-lg">STX</span>
                                         </p>
                                     </div>
                                 </div>
