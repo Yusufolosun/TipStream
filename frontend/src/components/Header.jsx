@@ -4,13 +4,11 @@ export default function Header({ userData, onAuth }) {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-20">
                     <div className="flex items-center space-x-3">
-                        <div className="flex items-center justify-center p-1.5 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10">
-                            <img
-                                src="/logo.png"
-                                alt="TipStream Logo"
-                                className="h-12 w-12 object-contain"
-                            />
-                        </div>
+                        <img
+                            src="/logo.png"
+                            alt="TipStream Logo"
+                            className="h-12 w-12 object-contain"
+                        />
                         <div>
                             <h1 className="text-2xl font-black text-white tracking-tight">TipStream</h1>
                             <span className="text-[10px] font-bold uppercase tracking-widest text-gray-300 bg-gray-800/50 px-2 py-0.5 rounded-full">v1.0.0</span>
