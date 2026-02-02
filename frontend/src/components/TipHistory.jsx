@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { callReadOnlyFunction, cvToJSON, principalCV } from '@stacks/transactions';
+import { fetchCallReadOnlyFunction, cvToJSON, principalCV } from '@stacks/transactions';
 import { network } from '../utils/stacks';
 
 const CONTRACT_ADDRESS = 'SP31PKQVQZVZCK3FM3NH67CGD6G1FMR17VQVS2W5T';
@@ -17,7 +17,7 @@ export default function TipHistory({ userAddress }) {
 
     const fetchUserStats = async () => {
         try {
-            const result = await callReadOnlyFunction({
+            const result = await fetchCallReadOnlyFunction({
                 network,
                 contractAddress: CONTRACT_ADDRESS,
                 contractName: CONTRACT_NAME,

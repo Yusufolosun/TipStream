@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { callReadOnlyFunction, cvToJSON, uintCV } from '@stacks/transactions';
+import { fetchCallReadOnlyFunction, cvToJSON, uintCV } from '@stacks/transactions';
 import { network } from '../utils/stacks';
 
 const CONTRACT_ADDRESS = 'SP31PKQVQZVZCK3FM3NH67CGD6G1FMR17VQVS2W5T';
@@ -15,7 +15,7 @@ export default function RecentTips() {
 
     const fetchRecentTips = async () => {
         try {
-            const platformStats = await callReadOnlyFunction({
+            const platformStats = await fetchCallReadOnlyFunction({
                 network,
                 contractAddress: CONTRACT_ADDRESS,
                 contractName: CONTRACT_NAME,
@@ -33,7 +33,7 @@ export default function RecentTips() {
 
             for (let i = totalTips - 1; i >= startId && i >= 0; i--) {
                 recentTipPromises.push(
-                    callReadOnlyFunction({
+                    fetchCallReadOnlyFunction({
                         network,
                         contractAddress: CONTRACT_ADDRESS,
                         contractName: CONTRACT_NAME,

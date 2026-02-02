@@ -1,10 +1,10 @@
 import { AppConfig, UserSession, showConnect } from '@stacks/connect';
-import { StacksMainnet } from '@stacks/network';
+import { STACKS_MAINNET } from '@stacks/network';
 
 const appConfig = new AppConfig(['store_write', 'publish_data']);
 export const userSession = new UserSession({ appConfig });
 
-export const network = new StacksMainnet();
+export const network = STACKS_MAINNET;
 
 export const appDetails = {
     name: 'TipStream',
