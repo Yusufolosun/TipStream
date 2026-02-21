@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { fetchCallReadOnlyFunction, cvToJSON } from '@stacks/transactions';
 import { network } from '../utils/stacks';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
+import { formatSTX } from '../lib/utils';
 
 export default function PlatformStats() {
     const [stats, setStats] = useState(null);
@@ -79,7 +80,7 @@ export default function PlatformStats() {
                     <p className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-tighter">Total Volume</p>
                     <div className="flex items-baseline space-x-2">
                         <p className="text-5xl font-black text-black">
-                            {(stats['total-volume'].value / 1000000).toFixed(2)}
+                            {formatSTX(stats['total-volume'].value, 2)}
                         </p>
                         <span className="text-xl font-bold text-gray-600">STX</span>
                     </div>
@@ -89,7 +90,7 @@ export default function PlatformStats() {
                     <p className="text-sm font-bold text-purple-600 mb-2 uppercase tracking-tighter">Platform Fees</p>
                     <div className="flex items-baseline space-x-2">
                         <p className="text-5xl font-black text-purple-900">
-                            {(stats['platform-fees'].value / 1000000).toFixed(4)}
+                            {formatSTX(stats['platform-fees'].value, 4)}
                         </p>
                         <span className="text-xl font-bold text-purple-400">STX</span>
                     </div>
