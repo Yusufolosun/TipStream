@@ -101,7 +101,12 @@ function App() {
               </div>
             </div>
 
-            <div className="transition-all duration-500 transform">
+            <div
+              role="tabpanel"
+              id={`tabpanel-${activeTab}`}
+              aria-labelledby={`tab-${activeTab}`}
+              className="transition-all duration-500 transform"
+            >
               {activeTab === 'send' && <SendTip addToast={addToast} />}
               {activeTab === 'history' && (
                 <TipHistory userAddress={userData.profile.stxAddress.mainnet} />
