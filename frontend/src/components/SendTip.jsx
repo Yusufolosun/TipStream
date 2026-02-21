@@ -10,6 +10,7 @@ import {
 import { network, appDetails, userSession } from '../utils/stacks';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 import { toMicroSTX, formatSTX } from '../lib/utils';
+import ConfirmDialog from './ui/confirm-dialog';
 
 const FEE_BASIS_POINTS = 50;
 const BASIS_POINTS_DIVISOR = 10000;
@@ -19,8 +20,9 @@ export default function SendTip({ addToast }) {
     const [amount, setAmount] = useState('');
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showConfirm, setShowConfirm] = useState(false);
 
-    const handleSendTip = async () => {
+    const validateAndConfirm = () => {
         if (!recipient || !amount) {
             addToast('Please fill in all required fields', 'warning');
             return;
@@ -36,6 +38,12 @@ export default function SendTip({ addToast }) {
             addToast('Minimum tip amount is 0.001 STX', 'warning');
             return;
         }
+
+        setShowConfirm(true);
+    };
+
+    const handleSendTip = async () => {
+        setShowConfirm(false);
 
         setLoading(true);
 
@@ -165,7 +173,7 @@ export default function SendTip({ addToast }) {
                 )}
 
                 <button
-                    onClick={handleSendTip}
+                    onClick={validateAndConfirm}
                     disabled={loading}
                     className="w-full bg-gray-900 hover:bg-black text-white font-bold py-3 px-4 rounded-lg shadow-md hover:shadow-lg transform active:scale-95 transition-all disabled:bg-gray-400 disabled:shadow-none"
                 >
@@ -180,6 +188,20 @@ export default function SendTip({ addToast }) {
                     ) : 'Send Tip'}
                 </button>
             </div>
+
+            <ConfirmDialog
+                open={showConfirm}
+                title="Confirm Tip"
+                onConfirm={handleSendTip}
+                onCancel={() => setShowConfirm(false)}
+                confirmLabel="Send Tip"
+            >
+                <div className="space-y-2">
+                    <p>You are about to send <strong>{amount} STX</strong> to:</p>
+                    <p className="font-mono text-xs bg-gray-100 p-2 rounded break-all">{recipient}</p>
+                    {message && <p className="italic text-gray-500">"{message}"</p>}
+                </div>
+            </ConfirmDialog>
         </div>
     );
 }
