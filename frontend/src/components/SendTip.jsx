@@ -14,7 +14,7 @@ import { toMicroSTX, formatSTX } from '../lib/utils';
 const FEE_BASIS_POINTS = 50;
 const BASIS_POINTS_DIVISOR = 10000;
 
-export default function SendTip() {
+export default function SendTip({ addToast }) {
     const [recipient, setRecipient] = useState('');
     const [amount, setAmount] = useState('');
     const [message, setMessage] = useState('');
@@ -22,18 +22,18 @@ export default function SendTip() {
 
     const handleSendTip = async () => {
         if (!recipient || !amount) {
-            alert('Please fill in all required fields');
+            addToast('Please fill in all required fields', 'warning');
             return;
         }
 
         const parsedAmount = parseFloat(amount);
         if (isNaN(parsedAmount) || parsedAmount <= 0) {
-            alert('Please enter a valid tip amount greater than zero');
+            addToast('Please enter a valid tip amount greater than zero', 'warning');
             return;
         }
 
         if (parsedAmount < 0.001) {
-            alert('Minimum tip amount is 0.001 STX');
+            addToast('Minimum tip amount is 0.001 STX', 'warning');
             return;
         }
 
@@ -67,7 +67,7 @@ export default function SendTip() {
                     setRecipient('');
                     setAmount('');
                     setMessage('');
-                    alert('Tip sent successfully! (Transaction: ' + data.txId + ')');
+                    addToast('Tip sent successfully! Transaction: ' + data.txId, 'success');
                 },
                 onCancel: () => {
                     setLoading(false);
@@ -77,7 +77,7 @@ export default function SendTip() {
             await openContractCall(options);
         } catch (error) {
             console.error('Failed to send tip:', error.message || error);
-            alert('Failed to send tip');
+            addToast('Failed to send tip. Please try again.', 'error');
             setLoading(false);
         }
     };
