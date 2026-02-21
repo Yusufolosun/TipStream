@@ -1,7 +1,7 @@
 [project]
 name = "tipstream"
-description = ""
-authors = []
+description = "A micro-tipping platform built on the Stacks blockchain"
+authors = ["Mosas2000"]
 telemetry = false
 cache_dir = "./.cache"
 requirements = []
