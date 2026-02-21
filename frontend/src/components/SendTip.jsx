@@ -9,7 +9,10 @@ import {
 } from '@stacks/transactions';
 import { network, appDetails, userSession } from '../utils/stacks';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
-import { toMicroSTX } from '../lib/utils';
+import { toMicroSTX, formatSTX } from '../lib/utils';
+
+const FEE_BASIS_POINTS = 50;
+const BASIS_POINTS_DIVISOR = 10000;
 
 export default function SendTip() {
     const [recipient, setRecipient] = useState('');
@@ -130,6 +133,36 @@ export default function SendTip() {
                         </p>
                     </div>
                 </div>
+
+                {amount && parseFloat(amount) > 0 && (
+                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 text-sm">
+                        <p className="font-semibold text-gray-700 mb-2">Transaction Breakdown</p>
+                        <div className="space-y-1 text-gray-600">
+                            <div className="flex justify-between">
+                                <span>Tip amount</span>
+                                <span>{parseFloat(amount).toFixed(6)} STX</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Platform fee (0.5%)</span>
+                                <span>
+                                    {formatSTX(
+                                        Math.floor(toMicroSTX(amount) * FEE_BASIS_POINTS / BASIS_POINTS_DIVISOR),
+                                        6
+                                    )} STX
+                                </span>
+                            </div>
+                            <div className="border-t border-gray-200 pt-1 mt-1 flex justify-between font-semibold text-gray-800">
+                                <span>Recipient receives</span>
+                                <span>
+                                    {formatSTX(
+                                        toMicroSTX(amount) - Math.floor(toMicroSTX(amount) * FEE_BASIS_POINTS / BASIS_POINTS_DIVISOR),
+                                        6
+                                    )} STX
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <button
                     onClick={handleSendTip}
