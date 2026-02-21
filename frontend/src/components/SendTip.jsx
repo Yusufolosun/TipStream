@@ -9,7 +9,10 @@ import {
 } from '@stacks/transactions';
 import { network, appDetails, userSession } from '../utils/stacks';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
-import { toMicroSTX } from '../lib/utils';
+import { toMicroSTX, formatSTX } from '../lib/utils';
+
+const FEE_BASIS_POINTS = 50;
+const BASIS_POINTS_DIVISOR = 10000;
 
 export default function SendTip() {
     const [recipient, setRecipient] = useState('');
