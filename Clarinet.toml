@@ -8,6 +8,8 @@ requirements = []
 
 [contracts.tipstream]
 path = "contracts/tipstream.clar"
+clarity_version = 2
+epoch = 3.0
 
 [repl]
 costs_version = 3
