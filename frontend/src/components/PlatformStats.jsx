@@ -15,7 +15,7 @@ export default function PlatformStats() {
 
     const fetchPlatformStats = async () => {
         try {
-            const result = await callReadOnlyFunction({
+            const result = await fetchCallReadOnlyFunction({
                 network,
                 contractAddress: CONTRACT_ADDRESS,
                 contractName: CONTRACT_NAME,
