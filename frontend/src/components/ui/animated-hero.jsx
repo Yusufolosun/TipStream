@@ -76,7 +76,12 @@ function AnimatedHero({ onGetStarted }) {
                         >
                             Get Started Now <Zap className="w-4 h-4" />
                         </Button>
-                        <Button size="lg" className="gap-4" variant="outline">
+                        <Button
+                            size="lg"
+                            className="gap-4"
+                            variant="outline"
+                            onClick={() => window.open('https://github.com/Mosas2000/TipStream#readme', '_blank', 'noopener')}
+                        >
                             Learn More <MoveRight className="w-4 h-4" />
                         </Button>
                     </div>
