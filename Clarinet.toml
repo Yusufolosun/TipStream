@@ -9,10 +9,6 @@ requirements = []
 [contracts.tipstream]
 path = "contracts/tipstream.clar"
 
-# [contracts.counter]
-# path = "contracts/counter.clar"
-# epoch = "latest"
-
 [repl]
 costs_version = 3
 parser_version = 2
