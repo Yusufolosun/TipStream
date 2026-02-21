@@ -8,6 +8,7 @@ const CONTRACT_NAME = 'tipstream';
 export default function PlatformStats() {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         fetchPlatformStats();
@@ -29,6 +30,7 @@ export default function PlatformStats() {
             setLoading(false);
         } catch (error) {
             console.error('Error fetching platform stats:', error);
+            setError('Unable to load platform statistics. Please try again later.');
             setLoading(false);
         }
     };
@@ -39,6 +41,20 @@ export default function PlatformStats() {
                 {[1, 2, 3].map((i) => (
                     <div key={i} className="bg-gray-100 h-32 rounded-2xl"></div>
                 ))}
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-red-100 text-center">
+                <p className="text-red-600 font-medium mb-4">{error}</p>
+                <button
+                    onClick={() => { setError(null); setLoading(true); fetchPlatformStats(); }}
+                    className="px-6 py-2 bg-slate-900 text-white rounded-xl font-bold hover:bg-black transition-colors"
+                >
+                    Retry
+                </button>
             </div>
         );
     }
