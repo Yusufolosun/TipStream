@@ -4,9 +4,10 @@ import {
     stringUtf8CV,
     uintCV,
     principalCV,
-    PostConditionMode
+    PostConditionMode,
+    Pc
 } from '@stacks/transactions';
-import { network, appDetails } from '../utils/stacks';
+import { network, appDetails, userSession } from '../utils/stacks';
 
 // Use a placeholder address for now, will be updated during deployment
 const CONTRACT_ADDRESS = 'SP31PKQVQZVZCK3FM3NH67CGD6G1FMR17VQVS2W5T';
@@ -24,12 +25,30 @@ export default function SendTip() {
             return;
         }
 
+        const parsedAmount = parseFloat(amount);
+        if (isNaN(parsedAmount) || parsedAmount <= 0) {
+            alert('Please enter a valid tip amount greater than zero');
+            return;
+        }
+
+        if (parsedAmount < 0.001) {
+            alert('Minimum tip amount is 0.001 STX');
+            return;
+        }
+
         setLoading(true);
 
         try {
+            const microSTX = Math.floor(parseFloat(amount) * 1000000);
+            const senderAddress = userSession.loadUserData().profile.stxAddress.mainnet;
+
+            const postConditions = [
+                Pc.principal(senderAddress).willSendLte(microSTX).ustx()
+            ];
+
             const functionArgs = [
                 principalCV(recipient),
-                uintCV(Math.floor(parseFloat(amount) * 1000000)),
+                uintCV(microSTX),
                 stringUtf8CV(message || 'Thanks!')
             ];
 
@@ -40,6 +59,7 @@ export default function SendTip() {
                 contractName: CONTRACT_NAME,
                 functionName: 'send-tip',
                 functionArgs,
+                postConditions,
                 postConditionMode: PostConditionMode.Deny,
                 onFinish: (data) => {
                     console.log('Transaction:', data.txId);
