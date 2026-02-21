@@ -59,7 +59,6 @@ export default function SendTip() {
                 postConditions,
                 postConditionMode: PostConditionMode.Deny,
                 onFinish: (data) => {
-                    console.log('Transaction:', data.txId);
                     setLoading(false);
                     setRecipient('');
                     setAmount('');
@@ -73,7 +72,7 @@ export default function SendTip() {
 
             await openContractCall(options);
         } catch (error) {
-            console.error('Error sending tip:', error);
+            console.error('Failed to send tip:', error.message || error);
             alert('Failed to send tip');
             setLoading(false);
         }

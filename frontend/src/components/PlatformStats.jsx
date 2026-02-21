@@ -27,7 +27,7 @@ export default function PlatformStats() {
             setStats(jsonResult.value);
             setLoading(false);
         } catch (error) {
-            console.error('Error fetching platform stats:', error);
+            console.error('Failed to fetch platform stats:', error.message || error);
             setError('Unable to load platform statistics. Please try again later.');
             setLoading(false);
         }
