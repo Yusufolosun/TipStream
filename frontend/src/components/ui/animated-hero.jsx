@@ -3,6 +3,11 @@ import { motion } from "framer-motion";
 import { MoveRight, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+// Animation configuration for the rotating title text
+const TITLE_ROTATION_INTERVAL_MS = 2000;
+const TITLE_SLIDE_OFFSET_PX = 150;
+const SPRING_STIFFNESS = 50;
+
 function AnimatedHero({ onGetStarted }) {
     const [titleNumber, setTitleNumber] = useState(0);
     const titles = useMemo(
