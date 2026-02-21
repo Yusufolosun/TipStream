@@ -25,6 +25,17 @@ export default function SendTip() {
             return;
         }
 
+        const parsedAmount = parseFloat(amount);
+        if (isNaN(parsedAmount) || parsedAmount <= 0) {
+            alert('Please enter a valid tip amount greater than zero');
+            return;
+        }
+
+        if (parsedAmount < 0.001) {
+            alert('Minimum tip amount is 0.001 STX');
+            return;
+        }
+
         setLoading(true);
 
         try {
