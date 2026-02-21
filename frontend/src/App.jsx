@@ -7,10 +7,12 @@ import PlatformStats from './components/PlatformStats';
 import RecentTips from './components/RecentTips';
 import Leaderboard from './components/Leaderboard';
 import { AnimatedHero } from './components/ui/animated-hero';
+import { ToastContainer, useToast } from './components/ui/toast';
 
 function App() {
   const [userData, setUserData] = useState(null);
   const [activeTab, setActiveTab] = useState('send');
+  const { toasts, addToast, removeToast } = useToast();
 
   useEffect(() => {
     if (userSession.isUserSignedIn()) {
@@ -61,7 +63,7 @@ function App() {
             </div>
 
             <div className="transition-all duration-500 transform">
-              {activeTab === 'send' && <SendTip />}
+              {activeTab === 'send' && <SendTip addToast={addToast} />}
               {activeTab === 'history' && (
                 <TipHistory userAddress={userData.profile.stxAddress.mainnet} />
               )}
@@ -86,6 +88,7 @@ function App() {
           </div>
         </div>
       </footer>
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
     </div>
   );
 }
