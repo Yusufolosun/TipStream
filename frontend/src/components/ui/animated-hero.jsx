@@ -22,7 +22,7 @@ function AnimatedHero({ onGetStarted }) {
             } else {
                 setTitleNumber(titleNumber + 1);
             }
-        }, 2000);
+        }, TITLE_ROTATION_INTERVAL_MS);
         return () => clearTimeout(timeoutId);
     }, [titleNumber, titles]);
 
@@ -44,8 +44,8 @@ function AnimatedHero({ onGetStarted }) {
                                     <motion.span
                                         key={index}
                                         className="absolute font-semibold bg-gradient-to-r from-gray-900 to-black bg-clip-text text-transparent"
-                                        initial={{ opacity: 0, y: "-100" }}
-                                        transition={{ type: "spring", stiffness: 50 }}
+                                        initial={{ opacity: 0, y: -TITLE_SLIDE_OFFSET_PX }}
+                                        transition={{ type: "spring", stiffness: SPRING_STIFFNESS }}
                                         animate={
                                             titleNumber === index
                                                 ? {
@@ -53,7 +53,7 @@ function AnimatedHero({ onGetStarted }) {
                                                     opacity: 1,
                                                 }
                                                 : {
-                                                    y: titleNumber > index ? -150 : 150,
+                                                    y: titleNumber > index ? -TITLE_SLIDE_OFFSET_PX : TITLE_SLIDE_OFFSET_PX,
                                                     opacity: 0,
                                                 }
                                         }
