@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { fetchCallReadOnlyFunction, cvToJSON, uintCV } from '@stacks/transactions';
 import { network } from '../utils/stacks';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
+import { formatSTX } from '../lib/utils';
 
 export default function RecentTips() {
     const [tips, setTips] = useState([]);
@@ -99,7 +100,7 @@ export default function RecentTips() {
                                             <span>{truncateAddress(tip.recipient)}</span>
                                         </div>
                                         <p className="text-2xl font-black text-slate-900 mt-1">
-                                            {(tip.amount.value / 1000000).toFixed(4)} <span className="text-gray-900 text-lg">STX</span>
+                                            {formatSTX(tip.amount.value, 4)} <span className="text-gray-900 text-lg">STX</span>
                                         </p>
                                     </div>
                                 </div>

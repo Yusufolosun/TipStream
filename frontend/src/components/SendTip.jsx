@@ -9,6 +9,7 @@ import {
 } from '@stacks/transactions';
 import { network, appDetails, userSession } from '../utils/stacks';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
+import { toMicroSTX } from '../lib/utils';
 
 export default function SendTip() {
     const [recipient, setRecipient] = useState('');
@@ -36,7 +37,7 @@ export default function SendTip() {
         setLoading(true);
 
         try {
-            const microSTX = Math.floor(parseFloat(amount) * 1000000);
+            const microSTX = toMicroSTX(amount);
             const senderAddress = userSession.loadUserData().profile.stxAddress.mainnet;
 
             const postConditions = [
