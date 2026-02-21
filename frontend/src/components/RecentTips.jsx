@@ -3,6 +3,7 @@ import { fetchCallReadOnlyFunction, cvToJSON, uintCV } from '@stacks/transaction
 import { network } from '../utils/stacks';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 import { formatSTX } from '../lib/utils';
+import CopyButton from './ui/copy-button';
 
 export default function RecentTips() {
     const [tips, setTips] = useState([]);
@@ -62,6 +63,10 @@ export default function RecentTips() {
         return `${addrStr.slice(0, 8)}...${addrStr.slice(-6)}`;
     };
 
+    const fullAddress = (address) => {
+        return typeof address === 'string' ? address : address.value;
+    };
+
     if (loading) {
         return (
             <div className="space-y-4 animate-pulse">
@@ -94,10 +99,12 @@ export default function RecentTips() {
                                     <div>
                                         <div className="flex items-center space-x-2 text-sm text-slate-400 font-bold uppercase tracking-tighter">
                                             <span>{truncateAddress(tip.sender)}</span>
+                                            <CopyButton text={fullAddress(tip.sender)} className="text-slate-400 hover:text-slate-600" />
                                             <svg className="h-3 w-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                             </svg>
                                             <span>{truncateAddress(tip.recipient)}</span>
+                                            <CopyButton text={fullAddress(tip.recipient)} className="text-slate-400 hover:text-slate-600" />
                                         </div>
                                         <p className="text-2xl font-black text-slate-900 mt-1">
                                             {formatSTX(tip.amount.value, 4)} <span className="text-gray-900 text-lg">STX</span>
