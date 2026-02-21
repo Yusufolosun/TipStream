@@ -51,7 +51,7 @@ export default function RecentTips() {
             setTips(tipsData);
             setLoading(false);
         } catch (error) {
-            console.error('Error fetching recent tips:', error);
+            console.error('Failed to fetch recent tips:', error.message || error);
             setLoading(false);
         }
     };

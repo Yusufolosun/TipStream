@@ -28,7 +28,7 @@ export default function TipHistory({ userAddress }) {
             setStats(jsonResult.value);
             setLoading(false);
         } catch (error) {
-            console.error('Error fetching stats:', error);
+            console.error('Failed to fetch user stats:', error.message || error);
             setLoading(false);
         }
     };
