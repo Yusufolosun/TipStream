@@ -1,17 +1,15 @@
 [project]
 name = "tipstream"
-description = ""
-authors = []
+description = "A micro-tipping platform built on the Stacks blockchain"
+authors = ["Mosas2000"]
 telemetry = false
 cache_dir = "./.cache"
 requirements = []
 
 [contracts.tipstream]
 path = "contracts/tipstream.clar"
-
-# [contracts.counter]
-# path = "contracts/counter.clar"
-# epoch = "latest"
+clarity_version = 2
+epoch = 3.0
 
 [repl]
 costs_version = 3
