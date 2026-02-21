@@ -79,6 +79,7 @@ export default function SendTip({ addToast }) {
                 },
                 onCancel: () => {
                     setLoading(false);
+                    addToast('Transaction cancelled. Your funds were not transferred.', 'info');
                 }
             };
 
