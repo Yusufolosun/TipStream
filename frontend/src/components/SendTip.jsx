@@ -78,7 +78,9 @@ export default function SendTip({ addToast }) {
                     addToast('Tip sent successfully! Transaction: ' + data.txId, 'success');
                 },
                 onCancel: () => {
+                    console.info('Transaction cancelled by user');
                     setLoading(false);
+                    addToast('Transaction cancelled. Your funds were not transferred.', 'info');
                 }
             };
 
