@@ -39,5 +39,9 @@ npm run dev # Development
 npm run build # Production
 ```
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions, coding standards, and how to submit pull requests.
+
 ## License
 MIT
