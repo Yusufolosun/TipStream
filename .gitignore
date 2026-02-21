@@ -1,15 +1,37 @@
+# Dependencies
+node_modules/
 
-**/settings/Mainnet.toml
-**/settings/Testnet.toml
-.cache/**
-history.txt
+# Build output
+frontend/dist/
+.cache/
 
-logs
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
 *.log
 npm-debug.log*
-coverage
+
+# Test coverage
+coverage/
 *.info
-costs-reports.json
-node_modules
+
+# Clarinet
+**/settings/Mainnet.toml
+**/settings/Testnet.toml
 settings/Mainnet.toml
+history.txt
+costs-reports.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
 settings/Testnet.toml
