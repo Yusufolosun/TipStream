@@ -43,5 +43,9 @@ npm run build # Production
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions, coding standards, and how to submit pull requests.
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for a history of changes and releases.
+
 ## License
 MIT
