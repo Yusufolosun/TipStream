@@ -14,8 +14,16 @@ const { generateWallet, getStxAddress } = require('@stacks/wallet-sdk');
 const mnemonic = process.env.MNEMONIC;
 
 if (!mnemonic) {
-    console.error("❌ Error: MNEMONIC environment variable not set.");
-    console.log("Usage: MNEMONIC=\"your mnemonic here\" node scripts/test-contract.cjs");
+    console.error("Error: MNEMONIC environment variable not set.");
+    console.log("Usage: MNEMONIC=\"your mnemonic\" RECIPIENT=\"SPaddress\" node scripts/test-contract.cjs");
+    process.exit(1);
+}
+
+const recipientArg = process.env.RECIPIENT;
+if (!recipientArg) {
+    console.error("Error: RECIPIENT environment variable not set.");
+    console.log("The contract does not allow self-tipping. Provide a different recipient address.");
+    console.log("Usage: MNEMONIC=\"your mnemonic\" RECIPIENT=\"SPaddress\" node scripts/test-contract.cjs");
     process.exit(1);
 }
 
@@ -34,10 +42,9 @@ async function runTestTip() {
         const senderKey = account.stxPrivateKey;
         const senderAddress = account.address;
 
-        // Test parameters: Send 1000 micro-STX (0.001 STX) to self
-        const recipient = senderAddress;
+        const recipient = recipientArg;
         const amount = 1000;
-        const message = "On-chain test from Antigravity 🚀";
+        const message = "On-chain test tip";
 
         console.log(`Calling ${contractName}.${functionName} on Mainnet...`);
         console.log(`Sender: ${senderAddress}`);
