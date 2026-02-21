@@ -1,3 +1,5 @@
+import CopyButton from './ui/copy-button';
+
 export default function Header({ userData, onAuth }) {
     return (
         <nav className="bg-gradient-to-r from-gray-900 to-black shadow-xl border-b border-white/10">
@@ -21,10 +23,13 @@ export default function Header({ userData, onAuth }) {
                         {userData && (
                             <div className="hidden lg:flex flex-col items-end">
                                 <span className="text-[10px] font-bold text-gray-300 uppercase tracking-tighter">Connected Wallet</span>
-                                <p className="text-sm font-mono text-white/90 bg-white/10 px-3 py-1 rounded-lg border border-white/5">
-                                    {userData.profile.stxAddress.mainnet.slice(0, 6)}...
-                                    {userData.profile.stxAddress.mainnet.slice(-4)}
-                                </p>
+                                <div className="flex items-center gap-1.5">
+                                    <p className="text-sm font-mono text-white/90 bg-white/10 px-3 py-1 rounded-lg border border-white/5">
+                                        {userData.profile.stxAddress.mainnet.slice(0, 6)}...
+                                        {userData.profile.stxAddress.mainnet.slice(-4)}
+                                    </p>
+                                    <CopyButton text={userData.profile.stxAddress.mainnet} className="text-white/70 hover:text-white" />
+                                </div>
                             </div>
                         )}
 
