@@ -8,10 +8,7 @@ import {
     Pc
 } from '@stacks/transactions';
 import { network, appDetails, userSession } from '../utils/stacks';
-
-// Use a placeholder address for now, will be updated during deployment
-const CONTRACT_ADDRESS = 'SP31PKQVQZVZCK3FM3NH67CGD6G1FMR17VQVS2W5T';
-const CONTRACT_NAME = 'tipstream';
+import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 
 export default function SendTip() {
     const [recipient, setRecipient] = useState('');
