@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchCallReadOnlyFunction, cvToJSON } from '@stacks/transactions';
 import { network } from '../utils/stacks';
-
-const CONTRACT_ADDRESS = 'SP31PKQVQZVZCK3FM3NH67CGD6G1FMR17VQVS2W5T';
-const CONTRACT_NAME = 'tipstream';
+import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 
 export default function PlatformStats() {
     const [stats, setStats] = useState(null);
