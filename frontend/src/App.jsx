@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { userSession, authenticate, disconnect } from './utils/stacks';
 import Header from './components/Header';
 import SendTip from './components/SendTip';
@@ -37,6 +37,34 @@ function App() {
     { id: 'leaderboard', label: 'Leaderboard', icon: '🏆' },
   ];
 
+  const tabRefs = useRef([]);
+
+  const handleTabKeyDown = useCallback((e) => {
+    const currentIndex = tabs.findIndex((tab) => tab.id === activeTab);
+    let nextIndex = currentIndex;
+
+    switch (e.key) {
+      case 'ArrowRight':
+        nextIndex = (currentIndex + 1) % tabs.length;
+        break;
+      case 'ArrowLeft':
+        nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+        break;
+      case 'Home':
+        nextIndex = 0;
+        break;
+      case 'End':
+        nextIndex = tabs.length - 1;
+        break;
+      default:
+        return;
+    }
+
+    e.preventDefault();
+    setActiveTab(tabs[nextIndex].id);
+    tabRefs.current[nextIndex]?.focus();
+  }, [activeTab, tabs]);
+
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <Header userData={userData} onAuth={handleAuth} />
@@ -45,10 +73,21 @@ function App() {
         {userData ? (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex flex-wrap justify-center gap-3 mb-16">
-              <div className="inline-flex p-1.5 bg-white/80 backdrop-blur-md rounded-[2rem] shadow-xl shadow-gray-500/5 border border-gray-100">
-                {tabs.map((tab) => (
+              <div
+                role="tablist"
+                aria-label="Main navigation"
+                className="inline-flex p-1.5 bg-white/80 backdrop-blur-md rounded-[2rem] shadow-xl shadow-gray-500/5 border border-gray-100"
+                onKeyDown={handleTabKeyDown}
+              >
+                {tabs.map((tab, index) => (
                   <button
                     key={tab.id}
+                    ref={(el) => { tabRefs.current[index] = el; }}
+                    role="tab"
+                    aria-selected={activeTab === tab.id}
+                    aria-controls={`tabpanel-${tab.id}`}
+                    id={`tab-${tab.id}`}
+                    tabIndex={activeTab === tab.id ? 0 : -1}
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center space-x-2 px-6 py-3 rounded-[1.5rem] text-sm font-bold transition-all duration-300 ${activeTab === tab.id
                       ? 'bg-slate-900 text-white shadow-lg shadow-slate-200'
