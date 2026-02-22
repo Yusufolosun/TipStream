@@ -1,13 +1,14 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { userSession, authenticate, disconnect } from './utils/stacks';
 import Header from './components/Header';
 import SendTip from './components/SendTip';
-import TipHistory from './components/TipHistory';
-import PlatformStats from './components/PlatformStats';
-import RecentTips from './components/RecentTips';
-import Leaderboard from './components/Leaderboard';
 import { AnimatedHero } from './components/ui/animated-hero';
 import { ToastContainer, useToast } from './components/ui/toast';
+
+const TipHistory = lazy(() => import('./components/TipHistory'));
+const PlatformStats = lazy(() => import('./components/PlatformStats'));
+const RecentTips = lazy(() => import('./components/RecentTips'));
+const Leaderboard = lazy(() => import('./components/Leaderboard'));
 
 function App() {
   const [userData, setUserData] = useState(null);
@@ -111,20 +112,33 @@ function App() {
               </div>
             </div>
 
-            <div
-              role="tabpanel"
-              id={`tabpanel-${activeTab}`}
-              aria-labelledby={`tab-${activeTab}`}
-              className="transition-all duration-500 transform"
+            <Suspense
+              fallback={
+                <div className="flex justify-center items-center py-20">
+                  <div className="animate-pulse space-y-4 w-full max-w-md">
+                    <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+                    <div className="h-4 bg-gray-200 rounded w-full"></div>
+                    <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                    <div className="h-10 bg-gray-200 rounded w-full mt-4"></div>
+                  </div>
+                </div>
+              }
             >
-              {activeTab === 'send' && <SendTip addToast={addToast} />}
-              {activeTab === 'history' && (
-                <TipHistory userAddress={userData.profile.stxAddress.mainnet} />
-              )}
-              {activeTab === 'stats' && <PlatformStats />}
-              {activeTab === 'recent' && <RecentTips />}
-              {activeTab === 'leaderboard' && <Leaderboard />}
-            </div>
+              <div
+                role="tabpanel"
+                id={`tabpanel-${activeTab}`}
+                aria-labelledby={`tab-${activeTab}`}
+                className="transition-all duration-500 transform"
+              >
+                {activeTab === 'send' && <SendTip addToast={addToast} />}
+                {activeTab === 'history' && (
+                  <TipHistory userAddress={userData.profile.stxAddress.mainnet} />
+                )}
+                {activeTab === 'stats' && <PlatformStats />}
+                {activeTab === 'recent' && <RecentTips />}
+                {activeTab === 'leaderboard' && <Leaderboard />}
+              </div>
+            </Suspense>
           </div>
         ) : (
           <AnimatedHero onGetStarted={handleAuth} loading={authLoading} />
