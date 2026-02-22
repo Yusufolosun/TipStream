@@ -18,21 +18,25 @@ export const appDetails = {
     icon: window.location.origin + '/logo.png',
 };
 
-export async function authenticate() {
-    try {
-        const { connect } = await import('@stacks/connect');
+export function isWalletInstalled() {
+    return !!(window.StacksProvider || window.LeatherProvider);
+}
 
-        await connect({
-            appDetails,
-            redirectTo: '/',
-            onFinish: () => {
-                window.location.reload();
-            },
-            userSession,
-        });
-    } catch (error) {
-        console.error('Failed to connect wallet:', error.message || error);
+export async function authenticate() {
+    if (!isWalletInstalled()) {
+        throw new Error('No Stacks wallet found. Please install Leather or Xverse.');
     }
+
+    const { connect } = await import('@stacks/connect');
+
+    await connect({
+        appDetails,
+        redirectTo: '/',
+        onFinish: () => {
+            window.location.reload();
+        },
+        userSession,
+    });
 }
 
 export function getUserData() {

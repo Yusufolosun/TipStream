@@ -12,6 +12,7 @@ import { ToastContainer, useToast } from './components/ui/toast';
 function App() {
   const [userData, setUserData] = useState(null);
   const [activeTab, setActiveTab] = useState('send');
+  const [authLoading, setAuthLoading] = useState(false);
   const { toasts, addToast, removeToast } = useToast();
 
   useEffect(() => {
@@ -20,12 +21,21 @@ function App() {
     }
   }, []);
 
-  const handleAuth = () => {
+  const handleAuth = async () => {
     if (userData) {
       disconnect();
       setUserData(null);
-    } else {
-      authenticate();
+      return;
+    }
+
+    setAuthLoading(true);
+    try {
+      await authenticate();
+    } catch (error) {
+      console.error('Authentication failed:', error.message || error);
+      addToast(error.message || 'Failed to connect wallet. Please try again.', 'error');
+    } finally {
+      setAuthLoading(false);
     }
   };
 
@@ -67,7 +77,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      <Header userData={userData} onAuth={handleAuth} />
+      <Header userData={userData} onAuth={handleAuth} authLoading={authLoading} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {userData ? (
@@ -117,7 +127,7 @@ function App() {
             </div>
           </div>
         ) : (
-          <AnimatedHero onGetStarted={handleAuth} />
+          <AnimatedHero onGetStarted={handleAuth} loading={authLoading} />
         )}
       </main>
 
