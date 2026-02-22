@@ -21,6 +21,7 @@ export default function SendTip({ addToast }) {
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
+    const [pendingTx, setPendingTx] = useState(null);
 
     const validateAndConfirm = () => {
         if (!recipient || !amount) {
@@ -72,6 +73,11 @@ export default function SendTip({ addToast }) {
                 postConditionMode: PostConditionMode.Deny,
                 onFinish: (data) => {
                     setLoading(false);
+                    setPendingTx({
+                        txId: data.txId,
+                        recipient,
+                        amount: parseFloat(amount),
+                    });
                     setRecipient('');
                     setAmount('');
                     setMessage('');
@@ -190,6 +196,38 @@ export default function SendTip({ addToast }) {
                     ) : 'Send Tip'}
                 </button>
             </div>
+
+            <ConfirmDialog
+
+            {pendingTx && (
+                <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                        <span className="relative flex h-3 w-3">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
+                        </span>
+                        <p className="text-sm font-semibold text-yellow-800">Transaction Pending</p>
+                    </div>
+                    <p className="text-sm text-yellow-700 mb-1">
+                        Sent {pendingTx.amount} STX to{' '}
+                        <span className="font-mono text-xs">{pendingTx.recipient.slice(0, 8)}...{pendingTx.recipient.slice(-4)}</span>
+                    </p>
+                    <a
+                        href={`https://explorer.hiro.so/txid/${pendingTx.txId}?chain=mainnet`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-yellow-900 underline hover:no-underline"
+                    >
+                        View on Explorer
+                    </a>
+                    <button
+                        onClick={() => setPendingTx(null)}
+                        className="block mt-2 text-xs text-yellow-600 hover:text-yellow-800"
+                    >
+                        Dismiss
+                    </button>
+                </div>
+            )}
 
             <ConfirmDialog
                 open={showConfirm}
