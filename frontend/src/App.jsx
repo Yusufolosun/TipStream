@@ -112,20 +112,33 @@ function App() {
               </div>
             </div>
 
-            <div
-              role="tabpanel"
-              id={`tabpanel-${activeTab}`}
-              aria-labelledby={`tab-${activeTab}`}
-              className="transition-all duration-500 transform"
+            <Suspense
+              fallback={
+                <div className="flex justify-center items-center py-20">
+                  <div className="animate-pulse space-y-4 w-full max-w-md">
+                    <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+                    <div className="h-4 bg-gray-200 rounded w-full"></div>
+                    <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                    <div className="h-10 bg-gray-200 rounded w-full mt-4"></div>
+                  </div>
+                </div>
+              }
             >
-              {activeTab === 'send' && <SendTip addToast={addToast} />}
-              {activeTab === 'history' && (
-                <TipHistory userAddress={userData.profile.stxAddress.mainnet} />
-              )}
-              {activeTab === 'stats' && <PlatformStats />}
-              {activeTab === 'recent' && <RecentTips />}
-              {activeTab === 'leaderboard' && <Leaderboard />}
-            </div>
+              <div
+                role="tabpanel"
+                id={`tabpanel-${activeTab}`}
+                aria-labelledby={`tab-${activeTab}`}
+                className="transition-all duration-500 transform"
+              >
+                {activeTab === 'send' && <SendTip addToast={addToast} />}
+                {activeTab === 'history' && (
+                  <TipHistory userAddress={userData.profile.stxAddress.mainnet} />
+                )}
+                {activeTab === 'stats' && <PlatformStats />}
+                {activeTab === 'recent' && <RecentTips />}
+                {activeTab === 'leaderboard' && <Leaderboard />}
+              </div>
+            </Suspense>
           </div>
         ) : (
           <AnimatedHero onGetStarted={handleAuth} loading={authLoading} />
