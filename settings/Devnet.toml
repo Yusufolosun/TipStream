@@ -1,3 +1,10 @@
+# ======================================================================
+# WARNING: These are standard Clarinet devnet test accounts.
+# They hold NO real value and exist only in the local devnet sandbox.
+# NEVER use these mnemonics or keys on mainnet or testnet.
+# See: https://docs.hiro.so/clarinet/guides/clarinet-deploy
+# ======================================================================
+
 [network]
 name = "devnet"
 deployment_fee_rate = 10
