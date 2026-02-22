@@ -1,6 +1,6 @@
 import CopyButton from './ui/copy-button';
 
-export default function Header({ userData, onAuth }) {
+export default function Header({ userData, onAuth, authLoading }) {
     return (
         <nav className="bg-gradient-to-r from-gray-900 to-black shadow-xl border-b border-white/10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -35,12 +35,13 @@ export default function Header({ userData, onAuth }) {
 
                         <button
                             onClick={onAuth}
-                            className={`px-8 py-2.5 rounded-xl font-bold transition-all transform active:scale-95 shadow-lg ${userData
+                            disabled={authLoading}
+                            className={`px-8 py-2.5 rounded-xl font-bold transition-all transform active:scale-95 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${userData
                                 ? 'bg-red-500/10 text-red-100 border border-red-500/50 hover:bg-red-500 hover:text-white'
                                 : 'bg-white text-gray-900 hover:bg-gray-50 hover:shadow-white/10'
                                 }`}
                         >
-                            {userData ? 'Disconnect' : 'Connect Wallet'}
+                            {authLoading ? 'Connecting...' : userData ? 'Disconnect' : 'Connect Wallet'}
                         </button>
                     </div>
                 </div>
