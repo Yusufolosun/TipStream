@@ -1,13 +1,14 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { userSession, authenticate, disconnect } from './utils/stacks';
 import Header from './components/Header';
 import SendTip from './components/SendTip';
-import TipHistory from './components/TipHistory';
-import PlatformStats from './components/PlatformStats';
-import RecentTips from './components/RecentTips';
-import Leaderboard from './components/Leaderboard';
 import { AnimatedHero } from './components/ui/animated-hero';
 import { ToastContainer, useToast } from './components/ui/toast';
+
+const TipHistory = lazy(() => import('./components/TipHistory'));
+const PlatformStats = lazy(() => import('./components/PlatformStats'));
+const RecentTips = lazy(() => import('./components/RecentTips'));
+const Leaderboard = lazy(() => import('./components/Leaderboard'));
 
 function App() {
   const [userData, setUserData] = useState(null);
