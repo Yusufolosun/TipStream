@@ -2,9 +2,11 @@
 set -euo pipefail
 
 # TipStream Deployment Script
-# This script prepares the smart contract for mainnet deployment and builds the frontend.
+# Deploys the 10-contract ecosystem to Stacks mainnet
+# Total cost: ~1 STX (0.1 STX per contract × 10 contracts)
 
-echo "Starting TipStream deployment preparation..."
+echo "Starting TipStream ecosystem deployment..."
+echo ""
 
 # Verify clarinet is installed
 if ! command -v clarinet &> /dev/null; then
@@ -20,26 +22,48 @@ if ! clarinet check; then
     exit 1
 fi
 
-# Generate deployment plan for mainnet
-echo "Generating Clarinet mainnet deployment plan..."
-if ! clarinet deployments generate --mainnet --medium-cost; then
-    echo "Error: failed to generate deployment plan."
-    exit 1
-fi
+echo ""
+echo "=== Deployment Plan ==="
+echo "Contracts to deploy (10 new, tipstream already on mainnet):"
+echo "  1. tipstream-traits     (SIP-010/SIP-009 trait definitions)"
+echo "  2. tipstream-token      (TIPS fungible token)"
+echo "  3. tipstream-escrow     (Time-locked escrow tips)"
+echo "  4. tipstream-subscription (Recurring patronage)"
+echo "  5. tipstream-vault      (Community treasury)"
+echo "  6. tipstream-referral   (Referral tracking)"
+echo "  7. tipstream-multisig   (Multi-sig admin)"
+echo "  8. tipstream-rewards    (TIPS token rewards)"
+echo "  9. tipstream-badges     (NFT achievement badges)"
+echo " 10. tipstream-dao        (Token-weighted governance)"
+echo ""
+echo "Estimated total cost: ~1.0 STX (0.1 STX per contract)"
+echo "Deployer: SP31PKQVQZVZCK3FM3NH67CGD6G1FMR17VQVS2W5T"
+echo ""
 
-# Verify deployment plan was created
+# Verify deployment plan exists
 if [ ! -f "deployments/default.mainnet-plan.yaml" ]; then
     echo "Error: deployment plan not found at deployments/default.mainnet-plan.yaml"
     exit 1
 fi
 
-echo "Mainnet deployment plan generated successfully."
+echo "Review the plan:  cat deployments/default.mainnet-plan.yaml"
+echo ""
+read -p "Deploy to mainnet? (y/N): " confirm
+if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
+    echo "Deployment cancelled."
+    exit 0
+fi
 
-# Post-deployment instructions
 echo ""
-echo "Next steps:"
-echo "  1. Review the plan:  cat deployments/default.mainnet-plan.yaml"
-echo "  2. Deploy contract:  clarinet deployments apply -p deployments/default.mainnet-plan.yaml"
-echo "  3. Build frontend:   cd frontend && npm run build"
+echo "Applying deployment plan..."
+clarinet deployments apply -p deployments/default.mainnet-plan.yaml
+
 echo ""
-echo "Preparation complete."
+echo "=== Post-Deployment Setup ==="
+echo "Run these transactions after deployment:"
+echo "  1. tipstream-token.add-minter(<tipstream-rewards contract principal>)"
+echo "     Authorizes the rewards contract to mint TIPS tokens"
+echo "  2. tipstream-vault.add-authorized(<tipstream-dao contract principal>)"
+echo "     Authorizes the DAO to withdraw from the vault"
+echo ""
+echo "Deployment complete."
