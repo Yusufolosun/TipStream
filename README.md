@@ -39,6 +39,10 @@ npm run dev # Development
 npm run build # Production
 ```
 
+## Security Note
+
+The `settings/Devnet.toml` file contains mnemonic phrases and private keys for Clarinet devnet test accounts. These hold **no real value** and exist only in the local devnet sandbox. Never use devnet mnemonics or keys on mainnet or testnet.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions, coding standards, and how to submit pull requests.
