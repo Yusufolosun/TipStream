@@ -39,6 +39,10 @@ npm run dev # Development
 npm run build # Production
 ```
 
+## Architecture
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the system design, data model, component hierarchy, and deployment overview.
+
 ## Security Note
 
 The `settings/Devnet.toml` file contains mnemonic phrases and private keys for Clarinet devnet test accounts. These hold **no real value** and exist only in the local devnet sandbox. Never use devnet mnemonics or keys on mainnet or testnet.
