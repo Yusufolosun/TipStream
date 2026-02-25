@@ -14,6 +14,7 @@
 
 (define-constant basis-points-divisor u10000)
 (define-constant min-tip-amount u1000)
+(define-constant min-fee u1)
 
 ;; Data Variables
 (define-data-var total-tips-sent uint u0)
@@ -52,7 +53,15 @@
 
 ;; Private Functions
 (define-private (calculate-fee (amount uint))
-    (/ (* amount (var-get current-fee-basis-points)) basis-points-divisor)
+    (let
+        (
+            (raw-fee (/ (* amount (var-get current-fee-basis-points)) basis-points-divisor))
+        )
+        (if (> (var-get current-fee-basis-points) u0)
+            (if (< raw-fee min-fee) min-fee raw-fee)
+            u0
+        )
+    )
 )
 
 (define-private (send-tip-tuple (tip-data { recipient: principal, amount: uint, message: (string-utf8 280) }))

@@ -106,6 +106,21 @@ describe("TipStream Contract Tests", () => {
         expect(result).toBeOk(Cl.uint(5000));
     });
 
+    it("enforces minimum fee of 1 uSTX when raw calculation truncates to zero", () => {
+        simnet.callPublicFn("tipstream", "set-fee-basis-points", [Cl.uint(1)], deployer);
+
+        const { result } = simnet.callReadOnlyFn(
+            "tipstream",
+            "get-fee-for-amount",
+            [Cl.uint(1000)],
+            wallet1
+        );
+
+        expect(result).toBeOk(Cl.uint(1));
+
+        simnet.callPublicFn("tipstream", "set-fee-basis-points", [Cl.uint(50)], deployer);
+    });
+
     it("platform stats track correctly", () => {
         simnet.callPublicFn(
             "tipstream",
