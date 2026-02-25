@@ -13,6 +13,7 @@
 (define-constant err-contract-paused (err u107))
 
 (define-constant basis-points-divisor u10000)
+(define-constant min-tip-amount u1000)
 
 ;; Data Variables
 (define-data-var total-tips-sent uint u0)
@@ -71,7 +72,7 @@
             (recipient-count (default-to u0 (map-get? user-received-count recipient)))
         )
         (asserts! (not (var-get is-paused)) err-contract-paused)
-        (asserts! (> amount u0) err-invalid-amount)
+        (asserts! (>= amount min-tip-amount) err-invalid-amount)
         (asserts! (not (is-eq tx-sender recipient)) err-invalid-amount)
         (asserts! (not (default-to false (map-get? blocked-users { blocker: recipient, blocked: tx-sender }))) err-user-blocked)
         
@@ -197,6 +198,10 @@
 
 (define-read-only (get-user-received-total (user principal))
     (ok (default-to u0 (map-get? user-total-received user)))
+)
+
+(define-read-only (get-min-tip-amount)
+    (ok min-tip-amount)
 )
 
 (define-read-only (get-fee-for-amount (amount uint))
