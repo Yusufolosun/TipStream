@@ -534,4 +534,175 @@ describe("TipStream Contract Tests", () => {
             ]));
         });
     });
+
+    describe("Multi-sig Governance", () => {
+        const multisigContract = () => `${deployer}.tipstream-multisig`;
+
+        function setupMultisig() {
+            simnet.callPublicFn(
+                "tipstream",
+                "set-multisig",
+                [Cl.some(Cl.principal(multisigContract()))],
+                deployer
+            );
+            simnet.callPublicFn(
+                "tipstream-multisig",
+                "add-signer",
+                [Cl.principal(wallet1)],
+                deployer
+            );
+            simnet.callPublicFn(
+                "tipstream-multisig",
+                "add-signer",
+                [Cl.principal(wallet2)],
+                deployer
+            );
+            simnet.callPublicFn(
+                "tipstream-multisig",
+                "set-required-signatures",
+                [Cl.uint(2)],
+                deployer
+            );
+        }
+
+        it("owner can authorize a multisig contract", () => {
+            const { result } = simnet.callPublicFn(
+                "tipstream",
+                "set-multisig",
+                [Cl.some(Cl.principal(multisigContract()))],
+                deployer
+            );
+            expect(result).toBeOk(Cl.bool(true));
+
+            const { result: msig } = simnet.callReadOnlyFn(
+                "tipstream",
+                "get-multisig",
+                [],
+                deployer
+            );
+            expect(msig).toBeOk(Cl.some(Cl.principal(multisigContract())));
+        });
+
+        it("non-owner cannot authorize a multisig contract", () => {
+            const { result } = simnet.callPublicFn(
+                "tipstream",
+                "set-multisig",
+                [Cl.some(Cl.principal(multisigContract()))],
+                wallet1
+            );
+            expect(result).toBeErr(Cl.uint(100));
+        });
+
+        it("multisig signers can pause contract through governance", () => {
+            setupMultisig();
+
+            const { result: proposeResult } = simnet.callPublicFn(
+                "tipstream-multisig",
+                "propose-tx",
+                [
+                    Cl.stringUtf8("Pause contract for maintenance"),
+                    Cl.stringAscii("set-paused"),
+                    Cl.uint(1)
+                ],
+                wallet1
+            );
+            expect(proposeResult).toBeOk(Cl.uint(0));
+
+            simnet.callPublicFn(
+                "tipstream-multisig",
+                "sign-tx",
+                [Cl.uint(0)],
+                wallet2
+            );
+
+            const { result: execResult } = simnet.callPublicFn(
+                "tipstream-multisig",
+                "execute-tx",
+                [Cl.uint(0)],
+                wallet1
+            );
+            expect(execResult).toBeOk(Cl.bool(true));
+
+            const { result: tipResult } = simnet.callPublicFn(
+                "tipstream",
+                "send-tip",
+                [Cl.principal(wallet2), Cl.uint(1000000), Cl.stringUtf8("Should fail")],
+                wallet1
+            );
+            expect(tipResult).toBeErr(Cl.uint(107));
+        });
+
+        it("multisig signers can change fee through governance", () => {
+            setupMultisig();
+
+            simnet.callPublicFn(
+                "tipstream-multisig",
+                "propose-tx",
+                [Cl.stringUtf8("Increase fee to 1%"), Cl.stringAscii("set-fee"), Cl.uint(100)],
+                wallet1
+            );
+
+            simnet.callPublicFn("tipstream-multisig", "sign-tx", [Cl.uint(0)], wallet2);
+
+            const { result } = simnet.callPublicFn(
+                "tipstream-multisig",
+                "execute-tx",
+                [Cl.uint(0)],
+                wallet1
+            );
+            expect(result).toBeOk(Cl.bool(true));
+
+            const { result: feeResult } = simnet.callReadOnlyFn(
+                "tipstream",
+                "get-fee-for-amount",
+                [Cl.uint(1000000)],
+                wallet1
+            );
+            expect(feeResult).toBeOk(Cl.uint(10000));
+        });
+
+        it("execution fails without sufficient signatures", () => {
+            setupMultisig();
+
+            simnet.callPublicFn(
+                "tipstream-multisig",
+                "propose-tx",
+                [Cl.stringUtf8("Pause without quorum"), Cl.stringAscii("set-paused"), Cl.uint(1)],
+                wallet1
+            );
+
+            const { result } = simnet.callPublicFn(
+                "tipstream-multisig",
+                "execute-tx",
+                [Cl.uint(0)],
+                wallet1
+            );
+            expect(result).toBeErr(Cl.uint(1104));
+        });
+
+        it("owner can revoke multisig authorization", () => {
+            simnet.callPublicFn(
+                "tipstream",
+                "set-multisig",
+                [Cl.some(Cl.principal(multisigContract()))],
+                deployer
+            );
+
+            const { result: revoke } = simnet.callPublicFn(
+                "tipstream",
+                "set-multisig",
+                [Cl.none()],
+                deployer
+            );
+            expect(revoke).toBeOk(Cl.bool(true));
+
+            const { result: msig } = simnet.callReadOnlyFn(
+                "tipstream",
+                "get-multisig",
+                [],
+                deployer
+            );
+            expect(msig).toBeOk(Cl.none());
+        });
+    });
 });
