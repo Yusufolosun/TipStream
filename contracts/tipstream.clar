@@ -219,6 +219,23 @@
     (ok (map send-tip-tuple tips-list))
 )
 
+(define-private (strict-tip-fold
+    (tip-data { recipient: principal, amount: uint, message: (string-utf8 280) })
+    (acc (response uint uint))
+)
+    (match acc
+        ok-val (match (send-tip (get recipient tip-data) (get amount tip-data) (get message tip-data))
+            success (ok (+ ok-val u1))
+            error (err error)
+        )
+        err-val (err err-val)
+    )
+)
+
+(define-public (send-batch-tips-strict (tips-list (list 50 { recipient: principal, amount: uint, message: (string-utf8 280) })))
+    (fold strict-tip-fold tips-list (ok u0))
+)
+
 ;; Read-only Functions
 (define-read-only (get-tip (tip-id uint))
     (map-get? tips { tip-id: tip-id })

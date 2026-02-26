@@ -374,6 +374,54 @@ describe("TipStream Contract Tests", () => {
         });
     });
 
+    describe("Strict Batch Tipping", () => {
+        it("sends all tips when all are valid", () => {
+            const tips = [
+                Cl.tuple({ recipient: Cl.principal(wallet2), amount: Cl.uint(1000000), message: Cl.stringUtf8("Strict A") }),
+                Cl.tuple({ recipient: Cl.principal(wallet2), amount: Cl.uint(2000000), message: Cl.stringUtf8("Strict B") })
+            ];
+
+            const { result } = simnet.callPublicFn(
+                "tipstream",
+                "send-batch-tips-strict",
+                [Cl.list(tips)],
+                wallet1
+            );
+
+            expect(result).toBeOk(Cl.uint(2));
+        });
+
+        it("aborts entire batch when any tip fails", () => {
+            simnet.callPublicFn(
+                "tipstream",
+                "toggle-block-user",
+                [Cl.principal(wallet1)],
+                wallet2
+            );
+
+            const tips = [
+                Cl.tuple({ recipient: Cl.principal(deployer), amount: Cl.uint(1000000), message: Cl.stringUtf8("Valid") }),
+                Cl.tuple({ recipient: Cl.principal(wallet2), amount: Cl.uint(1000000), message: Cl.stringUtf8("Blocked") })
+            ];
+
+            const { result } = simnet.callPublicFn(
+                "tipstream",
+                "send-batch-tips-strict",
+                [Cl.list(tips)],
+                wallet1
+            );
+
+            expect(result).toBeErr(Cl.uint(106));
+
+            simnet.callPublicFn(
+                "tipstream",
+                "toggle-block-user",
+                [Cl.principal(wallet1)],
+                wallet2
+            );
+        });
+    });
+
     describe("ownership transfer", () => {
         it("allows owner to propose a new owner", () => {
             const { result } = simnet.callPublicFn(
