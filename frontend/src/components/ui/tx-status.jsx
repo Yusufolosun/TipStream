@@ -1,0 +1,90 @@
+import { useState, useEffect, useCallback } from 'react';
+
+const API_BASE = 'https://api.hiro.so';
+const POLL_INTERVAL = 8000;
+const MAX_POLLS = 60;
+
+export default function TxStatus({ txId, onConfirmed, onFailed }) {
+  const [status, setStatus] = useState('pending');
+  const [pollCount, setPollCount] = useState(0);
+
+  const checkStatus = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE}/extended/v1/tx/${txId}`);
+      if (!response.ok) return;
+
+      const data = await response.json();
+      const txStatus = data.tx_status;
+
+      if (txStatus === 'success') {
+        setStatus('confirmed');
+        onConfirmed?.(data);
+      } else if (txStatus === 'abort_by_response' || txStatus === 'abort_by_post_condition') {
+        setStatus('failed');
+        onFailed?.(txStatus);
+      }
+    } catch {
+      // Network error, keep polling
+    }
+  }, [txId, onConfirmed, onFailed]);
+
+  useEffect(() => {
+    if (status !== 'pending' || pollCount >= MAX_POLLS) return;
+
+    const timer = setTimeout(() => {
+      checkStatus();
+      setPollCount((c) => c + 1);
+    }, POLL_INTERVAL);
+
+    return () => clearTimeout(timer);
+  }, [status, pollCount, checkStatus]);
+
+  useEffect(() => {
+    checkStatus();
+  }, [checkStatus]);
+
+  const statusConfig = {
+    pending: {
+      label: 'Pending confirmation...',
+      color: 'bg-yellow-50 border-yellow-200 text-yellow-800',
+      dot: 'bg-yellow-400 animate-pulse',
+    },
+    confirmed: {
+      label: 'Confirmed on-chain',
+      color: 'bg-green-50 border-green-200 text-green-800',
+      dot: 'bg-green-500',
+    },
+    failed: {
+      label: 'Transaction failed',
+      color: 'bg-red-50 border-red-200 text-red-800',
+      dot: 'bg-red-500',
+    },
+  };
+
+  const config = statusConfig[status];
+  const explorerUrl = `https://explorer.hiro.so/txid/${txId}?chain=mainnet`;
+
+  return (
+    <div className={`mt-4 p-4 rounded-xl border ${config.color}`}>
+      <div className="flex items-center gap-3">
+        <span className={`h-2.5 w-2.5 rounded-full ${config.dot}`} />
+        <span className="text-sm font-medium">{config.label}</span>
+      </div>
+      <div className="mt-2 flex items-center gap-2">
+        <a
+          href={explorerUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs font-mono underline break-all"
+        >
+          {txId.slice(0, 10)}...{txId.slice(-8)}
+        </a>
+      </div>
+      {status === 'pending' && pollCount >= MAX_POLLS && (
+        <p className="mt-2 text-xs opacity-70">
+          Still waiting. Check the explorer for the latest status.
+        </p>
+      )}
+    </div>
+  );
+}
