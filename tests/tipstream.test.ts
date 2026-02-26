@@ -20,7 +20,7 @@ describe("TipStream Contract Tests", () => {
         );
 
         expect(result).toBeOk(Cl.uint(0));
-        expect(events).toHaveLength(2);
+        expect(events).toHaveLength(3);
     });
 
     it("cannot send tip to self", () => {
