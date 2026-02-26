@@ -9,6 +9,7 @@ const TipHistory = lazy(() => import('./components/TipHistory'));
 const PlatformStats = lazy(() => import('./components/PlatformStats'));
 const RecentTips = lazy(() => import('./components/RecentTips'));
 const Leaderboard = lazy(() => import('./components/Leaderboard'));
+const ProfileManager = lazy(() => import('./components/ProfileManager'));
 
 function App() {
   const [userData, setUserData] = useState(null);
@@ -46,6 +47,7 @@ function App() {
     { id: 'recent', label: 'Recent Tips', icon: '📡' },
     { id: 'stats', label: 'Platform Stats', icon: '📊' },
     { id: 'leaderboard', label: 'Leaderboard', icon: '🏆' },
+    { id: 'profile', label: 'Profile', icon: '⚙️' },
   ];
 
   const tabRefs = useRef([]);
@@ -137,6 +139,7 @@ function App() {
                 {activeTab === 'stats' && <PlatformStats />}
                 {activeTab === 'recent' && <RecentTips />}
                 {activeTab === 'leaderboard' && <Leaderboard />}
+                {activeTab === 'profile' && <ProfileManager addToast={addToast} />}
               </div>
             </Suspense>
           </div>
