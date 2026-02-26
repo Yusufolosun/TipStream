@@ -23,6 +23,34 @@ describe("TipStream Contract Tests", () => {
         expect(events).toHaveLength(3);
     });
 
+    it("verifies exact STX transfer amounts in tip events", () => {
+        const { result, events } = simnet.callPublicFn(
+            "tipstream",
+            "send-tip",
+            [
+                Cl.principal(wallet2),
+                Cl.uint(1000000),
+                Cl.stringUtf8("Verify amounts")
+            ],
+            wallet1
+        );
+
+        expect(result).toBeOk(Cl.uint(0));
+
+        const transfers = events.filter(e => e.event === "stx_transfer_event");
+        expect(transfers).toHaveLength(2);
+
+        const recipientTransfer = transfers[0];
+        expect(recipientTransfer.data.amount).toBe("995000");
+        expect(recipientTransfer.data.recipient).toBe(wallet2);
+        expect(recipientTransfer.data.sender).toBe(wallet1);
+
+        const feeTransfer = transfers[1];
+        expect(feeTransfer.data.amount).toBe("5000");
+        expect(feeTransfer.data.recipient).toBe(deployer);
+        expect(feeTransfer.data.sender).toBe(wallet1);
+    });
+
     it("cannot send tip to self", () => {
         const { result } = simnet.callPublicFn(
             "tipstream",
