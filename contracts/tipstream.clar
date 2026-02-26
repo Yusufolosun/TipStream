@@ -1,6 +1,8 @@
 ;; TipStream - Micro-tipping platform on Stacks
 ;; Version: 1.0.0
 
+(use-trait sip-010-trait .tipstream-traits.sip-010-trait)
+
 ;; Version Tracking
 (define-constant contract-version u1)
 (define-constant contract-name "tipstream-core")
@@ -18,6 +20,9 @@
 (define-constant err-timelock-not-expired (err u109))
 (define-constant err-no-pending-change (err u110))
 (define-constant err-not-authorized (err u111))
+
+(define-constant err-token-transfer-failed (err u112))
+(define-constant err-token-not-whitelisted (err u113))
 
 (define-constant basis-points-divisor u10000)
 (define-constant min-tip-amount u1000)
@@ -65,6 +70,20 @@
 )
 
 (define-map blocked-users { blocker: principal, blocked: principal } bool)
+
+(define-map whitelisted-tokens principal bool)
+(define-data-var total-token-tips uint u0)
+(define-map token-tips
+    { token-tip-id: uint }
+    {
+        sender: principal,
+        recipient: principal,
+        token-contract: principal,
+        amount: uint,
+        message: (string-utf8 280),
+        tip-height: uint
+    }
+)
 
 ;; Private Functions
 (define-private (calculate-fee (amount uint))
@@ -178,6 +197,63 @@
             (original-sender (get sender target-tip))
         )
         (send-tip original-sender amount message)
+    )
+)
+
+;; SIP-010 Token Tipping
+(define-public (send-token-tip
+    (token <sip-010-trait>)
+    (recipient principal)
+    (amount uint)
+    (message (string-utf8 280))
+)
+    (let
+        (
+            (token-principal (contract-of token))
+            (tip-id (var-get total-token-tips))
+        )
+        (asserts! (not (var-get is-paused)) err-contract-paused)
+        (asserts! (> amount u0) err-invalid-amount)
+        (asserts! (not (is-eq tx-sender recipient)) err-invalid-amount)
+        (asserts! (default-to false (map-get? whitelisted-tokens token-principal)) err-token-not-whitelisted)
+        (asserts! (not (default-to false (map-get? blocked-users { blocker: recipient, blocked: tx-sender }))) err-user-blocked)
+
+        (unwrap! (contract-call? token transfer amount tx-sender recipient none) err-token-transfer-failed)
+
+        (map-set token-tips
+            { token-tip-id: tip-id }
+            {
+                sender: tx-sender,
+                recipient: recipient,
+                token-contract: token-principal,
+                amount: amount,
+                message: message,
+                tip-height: block-height
+            }
+        )
+
+        (var-set total-token-tips (+ tip-id u1))
+
+        (print {
+            event: "token-tip-sent",
+            token-tip-id: tip-id,
+            sender: tx-sender,
+            recipient: recipient,
+            token-contract: token-principal,
+            amount: amount,
+            message: message
+        })
+
+        (ok tip-id)
+    )
+)
+
+(define-public (whitelist-token (token-contract principal) (allowed bool))
+    (begin
+        (asserts! (is-admin) err-owner-only)
+        (map-set whitelisted-tokens token-contract allowed)
+        (print { event: "token-whitelist-updated", token-contract: token-contract, allowed: allowed })
+        (ok true)
     )
 )
 
@@ -417,4 +493,16 @@
 
 (define-read-only (get-contract-version)
     (ok { version: contract-version, name: contract-name })
+)
+
+(define-read-only (get-token-tip (token-tip-id uint))
+    (map-get? token-tips { token-tip-id: token-tip-id })
+)
+
+(define-read-only (is-token-whitelisted (token-contract principal))
+    (ok (default-to false (map-get? whitelisted-tokens token-contract)))
+)
+
+(define-read-only (get-total-token-tips)
+    (ok (var-get total-token-tips))
 )
