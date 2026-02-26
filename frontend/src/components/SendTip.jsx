@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { openContractCall } from '@stacks/connect';
 import {
     stringUtf8CV,
@@ -11,6 +11,7 @@ import { network, appDetails, userSession } from '../utils/stacks';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 import { toMicroSTX, formatSTX } from '../lib/utils';
 import { useTipContext } from '../context/TipContext';
+import { useBalance } from '../hooks/useBalance';
 import ConfirmDialog from './ui/confirm-dialog';
 import TxStatus from './ui/tx-status';
 
@@ -29,6 +30,18 @@ export default function SendTip({ addToast }) {
     const [pendingTx, setPendingTx] = useState(null);
     const [recipientError, setRecipientError] = useState('');
     const [amountError, setAmountError] = useState('');
+
+    const senderAddress = useMemo(() => {
+        try {
+            return userSession.loadUserData().profile.stxAddress.mainnet;
+        } catch {
+            return null;
+        }
+    }, []);
+
+    const { balance, loading: balanceLoading, refetch: refetchBalance } = useBalance(senderAddress);
+
+    const balanceSTX = balance !== null ? Number(balance) / 1_000_000 : null;
 
     const isValidStacksAddress = (address) => {
         if (!address) return false;
@@ -59,6 +72,8 @@ export default function SendTip({ addToast }) {
             setAmountError(`Minimum tip is ${MIN_TIP_STX} STX`);
         } else if (parsed > MAX_TIP_STX) {
             setAmountError(`Maximum tip is ${MAX_TIP_STX.toLocaleString()} STX`);
+        } else if (balanceSTX !== null && parsed > balanceSTX) {
+            setAmountError('Insufficient balance');
         } else {
             setAmountError('');
         }
@@ -94,6 +109,11 @@ export default function SendTip({ addToast }) {
 
         if (parsedAmount > MAX_TIP_STX) {
             addToast(`Maximum tip amount is ${MAX_TIP_STX.toLocaleString()} STX`, 'warning');
+            return;
+        }
+
+        if (balanceSTX !== null && parsedAmount > balanceSTX) {
+            addToast('Insufficient STX balance for this tip', 'warning');
             return;
         }
 
@@ -139,6 +159,7 @@ export default function SendTip({ addToast }) {
                     setAmount('');
                     setMessage('');
                     notifyTipSent();
+                    refetchBalance();
                     addToast('Tip sent successfully! Transaction: ' + data.txId, 'success');
                 },
                 onCancel: () => {
@@ -159,6 +180,31 @@ export default function SendTip({ addToast }) {
     return (
         <div className="max-w-md mx-auto p-6 bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800">
             <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100">Send a Tip</h2>
+
+            {senderAddress && (
+                <div className="mb-5 flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded-lg px-4 py-3 border border-gray-200 dark:border-gray-700">
+                    <div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Your Balance</p>
+                        <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                            {balanceLoading
+                                ? 'Loading...'
+                                : balanceSTX !== null
+                                    ? `${balanceSTX.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })} STX`
+                                    : 'Unavailable'}
+                        </p>
+                    </div>
+                    <button
+                        onClick={refetchBalance}
+                        disabled={balanceLoading}
+                        className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 disabled:opacity-50"
+                        title="Refresh balance"
+                    >
+                        <svg className={`w-4 h-4 ${balanceLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                    </button>
+                </div>
+            )}
 
             <div className="space-y-5">
                 <div>
