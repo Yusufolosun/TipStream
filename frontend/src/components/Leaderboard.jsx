@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
-import { formatSTX } from '../lib/utils';
+import { formatSTX, formatAddress } from '../lib/utils';
 import CopyButton from './ui/copy-button';
 
 const API_BASE = 'https://api.hiro.so';
@@ -72,7 +72,7 @@ export default function Leaderboard() {
         return b.totalReceived - a.totalReceived;
     }).slice(0, 20);
 
-    const truncateAddress = (addr) => `${addr.slice(0, 8)}...${addr.slice(-6)}`;
+    const truncateAddress = (addr) => formatAddress(addr, 8, 6);
 
     if (loading) {
         return (

@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { openContractCall } from '@stacks/connect';
 import { uintCV, stringUtf8CV, PostConditionMode, Pc } from '@stacks/transactions';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
-import { formatSTX, toMicroSTX } from '../lib/utils';
+import { formatSTX, toMicroSTX, formatAddress } from '../lib/utils';
 import { network, appDetails, userSession } from '../utils/stacks';
 import { useTipContext } from '../context/TipContext';
 import CopyButton from './ui/copy-button';
@@ -102,7 +102,7 @@ export default function RecentTips({ addToast }) {
 
     const truncateAddress = (address) => {
         const addrStr = typeof address === 'string' ? address : (address.value || '');
-        return `${addrStr.slice(0, 8)}...${addrStr.slice(-6)}`;
+        return formatAddress(addrStr, 8, 6);
     };
 
     const fullAddress = (address) => {

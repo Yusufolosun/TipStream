@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { fetchCallReadOnlyFunction, cvToJSON, principalCV } from '@stacks/transactions';
 import { network } from '../utils/stacks';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
-import { formatSTX } from '../lib/utils';
+import { formatSTX, formatAddress } from '../lib/utils';
 import { useTipContext } from '../context/TipContext';
 import CopyButton from './ui/copy-button';
 import ShareTip from './ShareTip';
@@ -123,7 +123,7 @@ export default function TipHistory({ userAddress }) {
         }
     };
 
-    const truncateAddr = (addr) => `${addr.slice(0, 8)}...${addr.slice(-6)}`;
+    const truncateAddr = (addr) => formatAddress(addr, 8, 6);
 
     const filteredTips = tips.filter(t => {
         if (tab === 'sent' && t.direction !== 'sent') return false;
@@ -196,7 +196,7 @@ export default function TipHistory({ userAddress }) {
                         {stats['tips-sent'].value}
                     </p>
                     <p className="text-sm font-medium text-gray-500">
-                        Total Volume: <span className="text-gray-700 font-bold">{(stats['total-sent'].value / 1000000).toFixed(2)} STX</span>
+                        Total Volume: <span className="text-gray-700 font-bold">{formatSTX(stats['total-sent'].value, 2)} STX</span>
                     </p>
                 </div>
 
@@ -213,7 +213,7 @@ export default function TipHistory({ userAddress }) {
                         {stats['tips-received'].value}
                     </p>
                     <p className="text-sm font-medium text-gray-500">
-                        Total Earned: <span className="text-gray-700 font-bold">{(stats['total-received'].value / 1000000).toFixed(2)} STX</span>
+                        Total Earned: <span className="text-gray-700 font-bold">{formatSTX(stats['total-received'].value, 2)} STX</span>
                     </p>
                 </div>
             </div>
