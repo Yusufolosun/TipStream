@@ -373,4 +373,84 @@ describe("TipStream Contract Tests", () => {
             });
         });
     });
+
+    describe("ownership transfer", () => {
+        it("allows owner to propose a new owner", () => {
+            const { result } = simnet.callPublicFn(
+                "tipstream",
+                "propose-new-owner",
+                [Cl.principal(wallet1)],
+                deployer
+            );
+            expect(result).toBeOk(Cl.bool(true));
+
+            const { result: pending } = simnet.callReadOnlyFn(
+                "tipstream",
+                "get-pending-owner",
+                [],
+                deployer
+            );
+            expect(pending).toBeOk(Cl.some(Cl.principal(wallet1)));
+        });
+
+        it("rejects proposal from non-owner", () => {
+            const { result } = simnet.callPublicFn(
+                "tipstream",
+                "propose-new-owner",
+                [Cl.principal(wallet2)],
+                wallet1
+            );
+            expect(result).toBeErr(Cl.uint(100));
+        });
+
+        it("rejects acceptance from wrong principal", () => {
+            simnet.callPublicFn(
+                "tipstream",
+                "propose-new-owner",
+                [Cl.principal(wallet1)],
+                deployer
+            );
+
+            const { result } = simnet.callPublicFn(
+                "tipstream",
+                "accept-ownership",
+                [],
+                wallet2
+            );
+            expect(result).toBeErr(Cl.uint(108));
+        });
+
+        it("completes two-step ownership transfer", () => {
+            simnet.callPublicFn(
+                "tipstream",
+                "propose-new-owner",
+                [Cl.principal(wallet1)],
+                deployer
+            );
+
+            const { result } = simnet.callPublicFn(
+                "tipstream",
+                "accept-ownership",
+                [],
+                wallet1
+            );
+            expect(result).toBeOk(Cl.bool(true));
+
+            const { result: owner } = simnet.callReadOnlyFn(
+                "tipstream",
+                "get-contract-owner",
+                [],
+                deployer
+            );
+            expect(owner).toBeOk(Cl.principal(wallet1));
+
+            const { result: pending } = simnet.callReadOnlyFn(
+                "tipstream",
+                "get-pending-owner",
+                [],
+                deployer
+            );
+            expect(pending).toBeOk(Cl.none());
+        });
+    });
 });
