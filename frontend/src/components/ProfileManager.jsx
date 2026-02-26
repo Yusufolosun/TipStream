@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import WidgetPreview from './WidgetPreview';
 import { openContractCall } from '@stacks/connect';
 import {
     fetchCallReadOnlyFunction,
@@ -173,6 +174,10 @@ export default function ProfileManager({ addToast }) {
                     ) : hasProfile ? 'Update Profile' : 'Create Profile'}
                 </button>
             </form>
+
+            <div className="mt-12 pt-8 border-t border-gray-100">
+                <WidgetPreview address={userAddress} />
+            </div>
         </div>
     );
 }
