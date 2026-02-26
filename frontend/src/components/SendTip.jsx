@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { openContractCall } from '@stacks/connect';
 import {
     stringUtf8CV,
@@ -19,6 +19,7 @@ const FEE_BASIS_POINTS = 50;
 const BASIS_POINTS_DIVISOR = 10000;
 const MIN_TIP_STX = 0.001;
 const MAX_TIP_STX = 10000;
+const COOLDOWN_SECONDS = 10;
 
 export default function SendTip({ addToast }) {
     const { notifyTipSent } = useTipContext();
@@ -30,6 +31,28 @@ export default function SendTip({ addToast }) {
     const [pendingTx, setPendingTx] = useState(null);
     const [recipientError, setRecipientError] = useState('');
     const [amountError, setAmountError] = useState('');
+    const [cooldown, setCooldown] = useState(0);
+    const cooldownRef = useRef(null);
+
+    useEffect(() => {
+        return () => {
+            if (cooldownRef.current) clearInterval(cooldownRef.current);
+        };
+    }, []);
+
+    const startCooldown = useCallback(() => {
+        setCooldown(COOLDOWN_SECONDS);
+        cooldownRef.current = setInterval(() => {
+            setCooldown(prev => {
+                if (prev <= 1) {
+                    clearInterval(cooldownRef.current);
+                    cooldownRef.current = null;
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+    }, []);
 
     const senderAddress = useMemo(() => {
         try {
@@ -80,6 +103,11 @@ export default function SendTip({ addToast }) {
     };
 
     const validateAndConfirm = () => {
+        if (cooldown > 0) {
+            addToast(`Please wait ${cooldown}s before sending another tip`, 'warning');
+            return;
+        }
+
         if (!recipient || !amount) {
             addToast('Please fill in all required fields', 'warning');
             return;
@@ -160,6 +188,7 @@ export default function SendTip({ addToast }) {
                     setMessage('');
                     notifyTipSent();
                     refetchBalance();
+                    startCooldown();
                     addToast('Tip sent successfully! Transaction: ' + data.txId, 'success');
                 },
                 onCancel: () => {
@@ -293,7 +322,7 @@ export default function SendTip({ addToast }) {
 
                 <button
                     onClick={validateAndConfirm}
-                    disabled={loading}
+                    disabled={loading || cooldown > 0}
                     className="w-full bg-gray-900 hover:bg-black text-white font-bold py-3 px-4 rounded-lg shadow-md hover:shadow-lg transform active:scale-95 transition-all disabled:bg-gray-400 disabled:shadow-none"
                 >
                     {loading ? (
@@ -304,7 +333,7 @@ export default function SendTip({ addToast }) {
                             </svg>
                             Processing...
                         </span>
-                    ) : 'Send Tip'}
+                    ) : cooldown > 0 ? `Wait ${cooldown}s` : 'Send Tip'}
                 </button>
             </div>
 
