@@ -107,7 +107,17 @@
         (var-set total-tips-sent (+ tip-id u1))
         (var-set total-volume (+ (var-get total-volume) amount))
         (var-set platform-fees (+ (var-get platform-fees) fee))
-        
+
+        (print {
+            event: "tip-sent",
+            tip-id: tip-id,
+            sender: tx-sender,
+            recipient: recipient,
+            amount: amount,
+            fee: fee,
+            net-amount: net-amount
+        })
+
         (ok tip-id)
     )
 )
@@ -124,6 +134,11 @@
                 avatar-url: avatar-url
             }
         )
+        (print {
+            event: "profile-updated",
+            user: tx-sender,
+            display-name: display-name
+        })
         (ok true)
     )
 )
@@ -143,9 +158,16 @@
     (let
         (
             (is-blocked (default-to false (map-get? blocked-users { blocker: tx-sender, blocked: user })))
+            (new-state (not is-blocked))
         )
-        (map-set blocked-users { blocker: tx-sender, blocked: user } (not is-blocked))
-        (ok (not is-blocked))
+        (map-set blocked-users { blocker: tx-sender, blocked: user } new-state)
+        (print {
+            event: "user-blocked",
+            blocker: tx-sender,
+            blocked: user,
+            is-blocked: new-state
+        })
+        (ok new-state)
     )
 )
 
@@ -154,6 +176,7 @@
     (begin
         (asserts! (is-eq tx-sender contract-owner) err-owner-only)
         (var-set is-paused paused)
+        (print { event: "contract-paused", paused: paused })
         (ok true)
     )
 )
@@ -161,8 +184,9 @@
 (define-public (set-fee-basis-points (new-fee uint))
     (begin
         (asserts! (is-eq tx-sender contract-owner) err-owner-only)
-        (asserts! (<= new-fee u1000) err-invalid-amount) ;; Max 10%
+        (asserts! (<= new-fee u1000) err-invalid-amount)
         (var-set current-fee-basis-points new-fee)
+        (print { event: "fee-updated", new-fee: new-fee })
         (ok true)
     )
 )
