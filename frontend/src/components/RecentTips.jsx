@@ -1,14 +1,21 @@
 import { useEffect, useState, useCallback } from 'react';
+import { openContractCall } from '@stacks/connect';
+import { uintCV, stringUtf8CV, PostConditionMode, Pc } from '@stacks/transactions';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
-import { formatSTX } from '../lib/utils';
+import { formatSTX, toMicroSTX } from '../lib/utils';
+import { network, appDetails, userSession } from '../utils/stacks';
 import CopyButton from './ui/copy-button';
 
 const API_BASE = 'https://api.hiro.so';
 
-export default function RecentTips() {
+export default function RecentTips({ addToast }) {
     const [tips, setTips] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [tipBackTarget, setTipBackTarget] = useState(null);
+    const [tipBackAmount, setTipBackAmount] = useState('0.5');
+    const [tipBackMessage, setTipBackMessage] = useState('');
+    const [sending, setSending] = useState(false);
 
     const fetchRecentTips = useCallback(async () => {
         try {
@@ -79,6 +86,44 @@ export default function RecentTips() {
         return typeof address === 'string' ? address : (address.value || '');
     };
 
+    const handleTipBack = async (tip) => {
+        if (!userSession.isUserSignedIn()) return;
+        const microSTX = toMicroSTX(tipBackAmount);
+        const senderAddress = userSession.loadUserData().profile.stxAddress.mainnet;
+
+        setSending(true);
+        try {
+            await openContractCall({
+                network,
+                appDetails,
+                contractAddress: CONTRACT_ADDRESS,
+                contractName: CONTRACT_NAME,
+                functionName: 'tip-a-tip',
+                functionArgs: [
+                    uintCV(parseInt(tip.tipId)),
+                    uintCV(microSTX),
+                    stringUtf8CV(tipBackMessage || 'Tipping back!'),
+                ],
+                postConditions: [Pc.principal(senderAddress).willSendLte(microSTX).ustx()],
+                postConditionMode: PostConditionMode.Deny,
+                onFinish: (data) => {
+                    setSending(false);
+                    setTipBackTarget(null);
+                    setTipBackMessage('');
+                    if (addToast) addToast('Tip-a-tip sent! Tx: ' + data.txId, 'success');
+                },
+                onCancel: () => {
+                    setSending(false);
+                    if (addToast) addToast('Tip-a-tip cancelled', 'info');
+                },
+            });
+        } catch (err) {
+            console.error('Tip-a-tip failed:', err.message || err);
+            if (addToast) addToast('Failed to send tip-a-tip', 'error');
+            setSending(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="space-y-4 animate-pulse">
@@ -147,9 +192,62 @@ export default function RecentTips() {
                                         </p>
                                     </div>
                                 )}
+                                {userSession.isUserSignedIn() && (
+                                    <button
+                                        onClick={() => setTipBackTarget(tip)}
+                                        className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                                    >
+                                        Tip Back
+                                    </button>
+                                )}
                             </div>
                         </div>
                     ))}
+                </div>
+            )}
+
+            {tipBackTarget && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+                        <h3 className="text-lg font-bold text-gray-800 mb-4">Tip Back</h3>
+                        <p className="text-sm text-gray-500 mb-4">
+                            Send a tip to the original sender of tip #{tipBackTarget.tipId}
+                        </p>
+                        <div className="space-y-3 mb-4">
+                            <input
+                                type="number"
+                                value={tipBackAmount}
+                                onChange={(e) => setTipBackAmount(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none"
+                                placeholder="Amount (STX)"
+                                step="0.001"
+                                min="0.001"
+                            />
+                            <input
+                                type="text"
+                                value={tipBackMessage}
+                                onChange={(e) => setTipBackMessage(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none"
+                                placeholder="Message (optional)"
+                                maxLength={280}
+                            />
+                        </div>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setTipBackTarget(null)}
+                                className="flex-1 px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => handleTipBack(tipBackTarget)}
+                                disabled={sending}
+                                className="flex-1 px-4 py-2 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-all disabled:opacity-50"
+                            >
+                                {sending ? 'Sending...' : 'Send'}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
