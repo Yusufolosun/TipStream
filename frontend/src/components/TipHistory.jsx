@@ -14,6 +14,7 @@ export default function TipHistory({ userAddress }) {
     const [tips, setTips] = useState([]);
     const [loading, setLoading] = useState(true);
     const [tab, setTab] = useState('all');
+    const [lastRefresh, setLastRefresh] = useState(null);
 
     const fetchData = useCallback(async () => {
         if (!userAddress) return;
@@ -47,6 +48,7 @@ export default function TipHistory({ userAddress }) {
 
             setTips(userTips);
             setLoading(false);
+            setLastRefresh(new Date());
         } catch (error) {
             console.error('Failed to fetch tip history:', error.message || error);
             setLoading(false);
@@ -56,6 +58,11 @@ export default function TipHistory({ userAddress }) {
     useEffect(() => {
         fetchData();
     }, [fetchData, refreshCounter]);
+
+    useEffect(() => {
+        const interval = setInterval(fetchData, 60000);
+        return () => clearInterval(interval);
+    }, [fetchData]);
 
     const parseTipEvent = (repr) => {
         try {
@@ -108,7 +115,22 @@ export default function TipHistory({ userAddress }) {
 
     return (
         <div className="max-w-4xl mx-auto p-6">
-            <h2 className="text-2xl font-bold mb-8 text-gray-800">Your Activity</h2>
+            <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl font-bold text-gray-800">Your Activity</h2>
+                <div className="flex items-center gap-3">
+                    {lastRefresh && (
+                        <span className="text-xs text-gray-400">
+                            Updated {lastRefresh.toLocaleTimeString()}
+                        </span>
+                    )}
+                    <button
+                        onClick={fetchData}
+                        className="px-4 py-2 text-sm font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-colors"
+                    >
+                        Refresh
+                    </button>
+                </div>
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
                 <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
