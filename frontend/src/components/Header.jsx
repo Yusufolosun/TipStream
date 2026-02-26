@@ -19,12 +19,12 @@ export default function Header({ userData, onAuth, authLoading }) {
                         </div>
                     </div>
 
-                    <div className="flex items-center space-x-6">
+                    <div className="flex items-center space-x-3 sm:space-x-6">
                         {userData && (
-                            <div className="hidden lg:flex flex-col items-end">
+                            <div className="hidden sm:flex flex-col items-end">
                                 <span className="text-[10px] font-bold text-gray-300 uppercase tracking-tighter">Connected Wallet</span>
                                 <div className="flex items-center gap-1.5">
-                                    <p className="text-sm font-mono text-white/90 bg-white/10 px-3 py-1 rounded-lg border border-white/5">
+                                    <p className="text-xs sm:text-sm font-mono text-white/90 bg-white/10 px-2 sm:px-3 py-1 rounded-lg border border-white/5 truncate max-w-[140px] sm:max-w-none">
                                         {userData.profile.stxAddress.mainnet.slice(0, 6)}...
                                         {userData.profile.stxAddress.mainnet.slice(-4)}
                                     </p>
@@ -36,7 +36,7 @@ export default function Header({ userData, onAuth, authLoading }) {
                         <button
                             onClick={onAuth}
                             disabled={authLoading}
-                            className={`px-8 py-2.5 rounded-xl font-bold transition-all transform active:scale-95 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${userData
+                            className={`px-4 sm:px-8 py-2.5 rounded-xl font-bold transition-all transform active:scale-95 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] text-sm sm:text-base ${userData
                                 ? 'bg-red-500/10 text-red-100 border border-red-500/50 hover:bg-red-500 hover:text-white'
                                 : 'bg-white text-gray-900 hover:bg-gray-50 hover:shadow-white/10'
                                 }`}
