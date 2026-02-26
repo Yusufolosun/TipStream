@@ -1,8 +1,28 @@
+import { useState, useEffect } from 'react';
 import CopyButton from './ui/copy-button';
 import { useTheme } from '../context/ThemeContext';
+import { NETWORK_NAME, STACKS_API_BASE } from '../config/contracts';
 
 export default function Header({ userData, onAuth, authLoading }) {
     const { theme, toggleTheme } = useTheme();
+    const [apiReachable, setApiReachable] = useState(null);
+
+    useEffect(() => {
+        let cancelled = false;
+        const checkApi = async () => {
+            try {
+                const res = await fetch(`${STACKS_API_BASE}/v2/info`, { signal: AbortSignal.timeout(5000) });
+                if (!cancelled) setApiReachable(res.ok);
+            } catch {
+                if (!cancelled) setApiReachable(false);
+            }
+        };
+        checkApi();
+        const interval = setInterval(checkApi, 30000);
+        return () => { cancelled = true; clearInterval(interval); };
+    }, []);
+
+    const networkLabel = NETWORK_NAME.charAt(0).toUpperCase() + NETWORK_NAME.slice(1);
 
     return (
         <nav className="bg-gradient-to-r from-gray-900 to-black shadow-xl border-b border-white/10">
@@ -23,6 +43,11 @@ export default function Header({ userData, onAuth, authLoading }) {
                     </div>
 
                     <div className="flex items-center space-x-3 sm:space-x-6">
+                        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 border border-white/5">
+                            <span className={`h-2 w-2 rounded-full ${apiReachable === null ? 'bg-yellow-400 animate-pulse' : apiReachable ? 'bg-green-400' : 'bg-red-400'}`} />
+                            <span className="text-[10px] font-bold text-gray-300 uppercase tracking-wider">{networkLabel}</span>
+                        </div>
+
                         <button
                             onClick={toggleTheme}
                             className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
