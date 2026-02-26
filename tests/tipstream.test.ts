@@ -891,4 +891,129 @@ describe("TipStream Contract Tests", () => {
             expect(msig).toBeOk(Cl.none());
         });
     });
+
+    describe("SIP-010 Token Tipping", () => {
+        it("rejects token tip for non-whitelisted token", () => {
+            const { result } = simnet.callPublicFn(
+                "tipstream",
+                "send-token-tip",
+                [
+                    Cl.contractPrincipal(deployer.split(".")[0] || deployer, "tipstream-token"),
+                    Cl.principal(wallet2),
+                    Cl.uint(1000),
+                    Cl.stringUtf8("token tip"),
+                ],
+                wallet1
+            );
+            expect(result).toBeErr(Cl.uint(113));
+        });
+
+        it("admin can whitelist a token", () => {
+            const tokenPrincipal = `${deployer}.tipstream-token`;
+            const { result } = simnet.callPublicFn(
+                "tipstream",
+                "whitelist-token",
+                [Cl.principal(tokenPrincipal), Cl.bool(true)],
+                deployer
+            );
+            expect(result).toBeOk(Cl.bool(true));
+
+            const { result: check } = simnet.callReadOnlyFn(
+                "tipstream",
+                "is-token-whitelisted",
+                [Cl.principal(tokenPrincipal)],
+                deployer
+            );
+            expect(check).toBeOk(Cl.bool(true));
+        });
+
+        it("non-admin cannot whitelist tokens", () => {
+            const tokenPrincipal = `${deployer}.tipstream-token`;
+            const { result } = simnet.callPublicFn(
+                "tipstream",
+                "whitelist-token",
+                [Cl.principal(tokenPrincipal), Cl.bool(true)],
+                wallet1
+            );
+            expect(result).toBeErr(Cl.uint(100));
+        });
+
+        it("sends token tip with whitelisted token", () => {
+            const tokenPrincipal = `${deployer}.tipstream-token`;
+
+            simnet.callPublicFn(
+                "tipstream",
+                "whitelist-token",
+                [Cl.principal(tokenPrincipal), Cl.bool(true)],
+                deployer
+            );
+
+            simnet.callPublicFn(
+                "tipstream-token",
+                "mint",
+                [Cl.uint(1000000), Cl.principal(wallet1)],
+                deployer
+            );
+
+            const { result } = simnet.callPublicFn(
+                "tipstream",
+                "send-token-tip",
+                [
+                    Cl.contractPrincipal(deployer.split(".")[0] || deployer, "tipstream-token"),
+                    Cl.principal(wallet2),
+                    Cl.uint(5000),
+                    Cl.stringUtf8("TIPS for you!"),
+                ],
+                wallet1
+            );
+            expect(result).toBeOk(Cl.uint(0));
+
+            const { result: tipData } = simnet.callReadOnlyFn(
+                "tipstream",
+                "get-token-tip",
+                [Cl.uint(0)],
+                deployer
+            );
+            expect(tipData).not.toBeNone();
+        });
+
+        it("tracks total token tips count", () => {
+            const tokenPrincipal = `${deployer}.tipstream-token`;
+
+            simnet.callPublicFn(
+                "tipstream",
+                "whitelist-token",
+                [Cl.principal(tokenPrincipal), Cl.bool(true)],
+                deployer
+            );
+
+            simnet.callPublicFn(
+                "tipstream-token",
+                "mint",
+                [Cl.uint(1000000), Cl.principal(wallet1)],
+                deployer
+            );
+
+            simnet.callPublicFn(
+                "tipstream",
+                "send-token-tip",
+                [
+                    Cl.contractPrincipal(deployer.split(".")[0] || deployer, "tipstream-token"),
+                    Cl.principal(wallet2),
+                    Cl.uint(1000),
+                    Cl.stringUtf8("tip 1"),
+                ],
+                wallet1
+            );
+
+            const { result } = simnet.callReadOnlyFn(
+                "tipstream",
+                "get-total-token-tips",
+                [],
+                deployer
+            );
+            const count = (result as any).value.value;
+            expect(Number(count)).toBeGreaterThanOrEqual(1);
+        });
+    });
 });
