@@ -173,7 +173,7 @@ function App() {
 
                     <Routes>
                       <Route path="/send" element={<SendTip addToast={addToast} />} />
-                      <Route path="/activity" element={<TipHistory userAddress={isDemo ? 'SP1DEMO000000000000000000000SANDBOX' : userData.profile.stxAddress.mainnet} />} />
+                      <Route path="/activity" element={<TipHistory userAddress={isDemo ? 'SP1DEMO000000000000000000000SANDBOX' : userData?.profile?.stxAddress?.mainnet} />} />
                       <Route path="/feed" element={<RecentTips addToast={addToast} />} />
                       <Route path="/stats" element={<PlatformStats />} />
                       <Route path="/leaderboard" element={<Leaderboard />} />
