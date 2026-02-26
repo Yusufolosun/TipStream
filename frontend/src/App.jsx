@@ -8,6 +8,7 @@ import Onboarding from './components/Onboarding';
 import { AnimatedHero } from './components/ui/animated-hero';
 import { ToastContainer, useToast } from './components/ui/toast';
 import { analytics } from './lib/analytics';
+import { useNotifications } from './hooks/useNotifications';
 
 const TipHistory = lazy(() => import('./components/TipHistory'));
 const PlatformStats = lazy(() => import('./components/PlatformStats'));
@@ -23,6 +24,9 @@ function App() {
   const [authLoading, setAuthLoading] = useState(false);
   const { toasts, addToast, removeToast } = useToast();
   const location = useLocation();
+
+  const userAddress = userData?.profile?.stxAddress?.mainnet || null;
+  const { notifications, unreadCount, markAllRead, loading: notificationsLoading } = useNotifications(userAddress);
 
   useEffect(() => {
     if (userSession.isUserSignedIn()) {
@@ -71,7 +75,15 @@ function App() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-gray-950 transition-colors">
       <OfflineBanner />
-      <Header userData={userData} onAuth={handleAuth} authLoading={authLoading} />
+      <Header
+        userData={userData}
+        onAuth={handleAuth}
+        authLoading={authLoading}
+        notifications={notifications}
+        unreadCount={unreadCount}
+        onMarkNotificationsRead={markAllRead}
+        notificationsLoading={notificationsLoading}
+      />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {userData ? (
