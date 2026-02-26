@@ -11,10 +11,13 @@
 (define-constant err-user-blocked (err u106))
 (define-constant err-contract-paused (err u107))
 (define-constant err-not-pending-owner (err u108))
+(define-constant err-timelock-not-expired (err u109))
+(define-constant err-no-pending-change (err u110))
 
 (define-constant basis-points-divisor u10000)
 (define-constant min-tip-amount u1000)
 (define-constant min-fee u1)
+(define-constant timelock-delay u144)
 
 ;; Data Variables
 (define-data-var contract-owner principal tx-sender)
@@ -24,6 +27,10 @@
 (define-data-var platform-fees uint u0)
 (define-data-var is-paused bool false)
 (define-data-var current-fee-basis-points uint u50)
+(define-data-var pending-fee (optional uint) none)
+(define-data-var pending-fee-height uint u0)
+(define-data-var pending-pause (optional bool) none)
+(define-data-var pending-pause-height uint u0)
 
 ;; Data Maps
 (define-map tips
@@ -193,6 +200,74 @@
     )
 )
 
+;; Time-locked Admin Functions
+(define-public (propose-fee-change (new-fee uint))
+    (begin
+        (asserts! (is-eq tx-sender (var-get contract-owner)) err-owner-only)
+        (asserts! (<= new-fee u1000) err-invalid-amount)
+        (var-set pending-fee (some new-fee))
+        (var-set pending-fee-height (+ block-height timelock-delay))
+        (print {
+            event: "fee-change-proposed",
+            new-fee: new-fee,
+            effective-height: (+ block-height timelock-delay)
+        })
+        (ok true)
+    )
+)
+
+(define-public (execute-fee-change)
+    (let
+        (
+            (new-fee (unwrap! (var-get pending-fee) err-no-pending-change))
+        )
+        (asserts! (is-eq tx-sender (var-get contract-owner)) err-owner-only)
+        (asserts! (>= block-height (var-get pending-fee-height)) err-timelock-not-expired)
+        (var-set current-fee-basis-points new-fee)
+        (var-set pending-fee none)
+        (print { event: "fee-change-executed", new-fee: new-fee })
+        (ok true)
+    )
+)
+
+(define-public (cancel-fee-change)
+    (begin
+        (asserts! (is-eq tx-sender (var-get contract-owner)) err-owner-only)
+        (asserts! (is-some (var-get pending-fee)) err-no-pending-change)
+        (var-set pending-fee none)
+        (print { event: "fee-change-cancelled" })
+        (ok true)
+    )
+)
+
+(define-public (propose-pause-change (paused bool))
+    (begin
+        (asserts! (is-eq tx-sender (var-get contract-owner)) err-owner-only)
+        (var-set pending-pause (some paused))
+        (var-set pending-pause-height (+ block-height timelock-delay))
+        (print {
+            event: "pause-change-proposed",
+            paused: paused,
+            effective-height: (+ block-height timelock-delay)
+        })
+        (ok true)
+    )
+)
+
+(define-public (execute-pause-change)
+    (let
+        (
+            (paused (unwrap! (var-get pending-pause) err-no-pending-change))
+        )
+        (asserts! (is-eq tx-sender (var-get contract-owner)) err-owner-only)
+        (asserts! (>= block-height (var-get pending-pause-height)) err-timelock-not-expired)
+        (var-set is-paused paused)
+        (var-set pending-pause none)
+        (print { event: "pause-change-executed", paused: paused })
+        (ok true)
+    )
+)
+
 (define-public (propose-new-owner (new-owner principal))
     (begin
         (asserts! (is-eq tx-sender (var-get contract-owner)) err-owner-only)
@@ -288,6 +363,20 @@
 
 (define-read-only (get-fee-for-amount (amount uint))
     (ok (calculate-fee amount))
+)
+
+(define-read-only (get-pending-fee-change)
+    {
+        pending-fee: (var-get pending-fee),
+        effective-height: (var-get pending-fee-height)
+    }
+)
+
+(define-read-only (get-pending-pause-change)
+    {
+        pending-pause: (var-get pending-pause),
+        effective-height: (var-get pending-pause-height)
+    }
 )
 
 (define-read-only (get-multiple-user-stats (users (list 20 principal)))
