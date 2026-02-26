@@ -1,6 +1,10 @@
 ;; TipStream - Micro-tipping platform on Stacks
 ;; Version: 1.0.0
 
+;; Version Tracking
+(define-constant contract-version u1)
+(define-constant contract-name "tipstream-core")
+
 ;; Constants
 (define-constant err-owner-only (err u100))
 (define-constant err-invalid-amount (err u101))
@@ -406,4 +410,8 @@
 
 (define-read-only (get-multiple-user-stats (users (list 20 principal)))
     (ok (map get-user-stats users))
+)
+
+(define-read-only (get-contract-version)
+    (ok { version: contract-version, name: contract-name })
 )
