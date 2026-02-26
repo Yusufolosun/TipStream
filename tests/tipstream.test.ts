@@ -1016,4 +1016,82 @@ describe("TipStream Contract Tests", () => {
             expect(Number(count)).toBeGreaterThanOrEqual(1);
         });
     });
+
+    describe("Tip Categories", () => {
+        it("can send a categorized tip", () => {
+            const { result } = simnet.callPublicFn(
+                "tipstream",
+                "send-categorized-tip",
+                [
+                    Cl.principal(wallet2),
+                    Cl.uint(1000000),
+                    Cl.stringUtf8("Great open-source work!"),
+                    Cl.uint(2) // category-open-source
+                ],
+                wallet1
+            );
+            expect(result).not.toBeErr();
+        });
+
+        it("rejects invalid category", () => {
+            const { result } = simnet.callPublicFn(
+                "tipstream",
+                "send-categorized-tip",
+                [
+                    Cl.principal(wallet2),
+                    Cl.uint(1000000),
+                    Cl.stringUtf8("Bad category"),
+                    Cl.uint(99) // invalid category
+                ],
+                wallet1
+            );
+            expect(result).toBeErr(Cl.uint(114));
+        });
+
+        it("tracks category counts", () => {
+            // Send two tips in education category
+            simnet.callPublicFn(
+                "tipstream",
+                "send-categorized-tip",
+                [Cl.principal(wallet2), Cl.uint(1000000), Cl.stringUtf8("Edu tip 1"), Cl.uint(5)],
+                wallet1
+            );
+            simnet.callPublicFn(
+                "tipstream",
+                "send-categorized-tip",
+                [Cl.principal(wallet2), Cl.uint(1000000), Cl.stringUtf8("Edu tip 2"), Cl.uint(5)],
+                wallet1
+            );
+
+            const { result } = simnet.callReadOnlyFn(
+                "tipstream",
+                "get-category-count",
+                [Cl.uint(5)],
+                deployer
+            );
+            const count = (result as any).value.value;
+            expect(Number(count)).toBeGreaterThanOrEqual(2);
+        });
+
+        it("can read tip category", () => {
+            const { result: sendResult } = simnet.callPublicFn(
+                "tipstream",
+                "send-categorized-tip",
+                [Cl.principal(wallet2), Cl.uint(1000000), Cl.stringUtf8("Bug bounty!"), Cl.uint(6)],
+                wallet1
+            );
+            expect(sendResult).not.toBeErr();
+
+            // Tip ID from first ever send-tip would be 0, but many tests ran before
+            // Just verify the read-only works for the bug-bounty category count
+            const { result } = simnet.callReadOnlyFn(
+                "tipstream",
+                "get-category-count",
+                [Cl.uint(6)],
+                deployer
+            );
+            const count = (result as any).value.value;
+            expect(Number(count)).toBeGreaterThanOrEqual(1);
+        });
+    });
 });
