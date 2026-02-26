@@ -1,0 +1,24 @@
+{
+  "uuid": "tipstream-chainhook-mainnet",
+  "name": "TipStream Event Indexer",
+  "version": 1,
+  "chain": "stacks",
+  "networks": {
+    "mainnet": {
+      "if_this": {
+        "scope": "print_event",
+        "contract_identifier": "SP31PKQVQZVZCK3FM3NH67CGD6G1FMR17VQVS2W5T.tipstream",
+        "contains": "event"
+      },
+      "then_that": {
+        "http_post": {
+          "url": "${CHAINHOOK_CALLBACK_URL:-http://localhost:3100}/api/chainhook/events",
+          "authorization_header": "Bearer ${CHAINHOOK_AUTH_TOKEN}"
+        }
+      },
+      "start_block": 195000,
+      "expire_after_occurrence": null,
+      "decode_clarity_values": true
+    }
+  }
+}
