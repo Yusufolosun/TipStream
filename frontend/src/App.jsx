@@ -4,6 +4,7 @@ import { userSession, authenticate, disconnect } from './utils/stacks';
 import Header from './components/Header';
 import SendTip from './components/SendTip';
 import OfflineBanner from './components/OfflineBanner';
+import Onboarding from './components/Onboarding';
 import { AnimatedHero } from './components/ui/animated-hero';
 import { ToastContainer, useToast } from './components/ui/toast';
 
@@ -66,6 +67,7 @@ function App() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {userData ? (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <Onboarding />
             <nav className="mb-16 -mx-4 sm:mx-0">
               <div className="overflow-x-auto scrollbar-hide px-4 sm:px-0">
                 <div className="flex justify-start sm:justify-center min-w-max sm:min-w-0">
