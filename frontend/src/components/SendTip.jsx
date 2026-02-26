@@ -10,6 +10,7 @@ import {
 import { network, appDetails, userSession } from '../utils/stacks';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 import { toMicroSTX, formatSTX } from '../lib/utils';
+import { useTipContext } from '../context/TipContext';
 import ConfirmDialog from './ui/confirm-dialog';
 
 const FEE_BASIS_POINTS = 50;
@@ -18,6 +19,7 @@ const MIN_TIP_STX = 0.001;
 const MAX_TIP_STX = 10000;
 
 export default function SendTip({ addToast }) {
+    const { notifyTipSent } = useTipContext();
     const [recipient, setRecipient] = useState('');
     const [amount, setAmount] = useState('');
     const [message, setMessage] = useState('');
@@ -135,6 +137,7 @@ export default function SendTip({ addToast }) {
                     setRecipient('');
                     setAmount('');
                     setMessage('');
+                    notifyTipSent();
                     addToast('Tip sent successfully! Transaction: ' + data.txId, 'success');
                 },
                 onCancel: () => {

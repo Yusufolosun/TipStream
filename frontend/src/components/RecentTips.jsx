@@ -4,11 +4,13 @@ import { uintCV, stringUtf8CV, PostConditionMode, Pc } from '@stacks/transaction
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 import { formatSTX, toMicroSTX } from '../lib/utils';
 import { network, appDetails, userSession } from '../utils/stacks';
+import { useTipContext } from '../context/TipContext';
 import CopyButton from './ui/copy-button';
 
 const API_BASE = 'https://api.hiro.so';
 
 export default function RecentTips({ addToast }) {
+    const { refreshCounter } = useTipContext();
     const [tips, setTips] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -49,7 +51,7 @@ export default function RecentTips({ addToast }) {
 
     useEffect(() => {
         fetchRecentTips();
-    }, [fetchRecentTips]);
+    }, [fetchRecentTips, refreshCounter]);
 
     const parseTipEvent = (repr) => {
         try {

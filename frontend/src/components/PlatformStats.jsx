@@ -1,19 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { fetchCallReadOnlyFunction, cvToJSON } from '@stacks/transactions';
 import { network } from '../utils/stacks';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 import { formatSTX } from '../lib/utils';
+import { useTipContext } from '../context/TipContext';
 
 export default function PlatformStats() {
+    const { refreshCounter } = useTipContext();
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        fetchPlatformStats();
-    }, []);
-
-    const fetchPlatformStats = async () => {
+    const fetchPlatformStats = useCallback(async () => {
         try {
             const result = await fetchCallReadOnlyFunction({
                 network,
@@ -32,7 +30,11 @@ export default function PlatformStats() {
             setError('Unable to load platform statistics. Please try again later.');
             setLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        fetchPlatformStats();
+    }, [fetchPlatformStats, refreshCounter]);
 
     if (loading) {
         return (
