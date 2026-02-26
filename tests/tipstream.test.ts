@@ -336,6 +336,62 @@ describe("TipStream Contract Tests", () => {
 
             expect(result).toBeOk(Cl.uint(20000));
         });
+
+        it("accepts fee at exactly the maximum limit of 1000 basis points", () => {
+            const { result } = simnet.callPublicFn(
+                "tipstream",
+                "set-fee-basis-points",
+                [Cl.uint(1000)],
+                deployer
+            );
+            expect(result).toBeOk(Cl.bool(true));
+
+            const { result: fee } = simnet.callReadOnlyFn(
+                "tipstream",
+                "get-fee-for-amount",
+                [Cl.uint(1000000)],
+                wallet1
+            );
+            expect(fee).toBeOk(Cl.uint(100000));
+        });
+
+        it("rejects fee above the maximum limit of 1000 basis points", () => {
+            const { result } = simnet.callPublicFn(
+                "tipstream",
+                "set-fee-basis-points",
+                [Cl.uint(1001)],
+                deployer
+            );
+            expect(result).toBeErr(Cl.uint(101));
+        });
+
+        it("accepts zero fee to disable platform fees", () => {
+            const { result } = simnet.callPublicFn(
+                "tipstream",
+                "set-fee-basis-points",
+                [Cl.uint(0)],
+                deployer
+            );
+            expect(result).toBeOk(Cl.bool(true));
+
+            const { result: fee } = simnet.callReadOnlyFn(
+                "tipstream",
+                "get-fee-for-amount",
+                [Cl.uint(1000000)],
+                wallet1
+            );
+            expect(fee).toBeOk(Cl.uint(0));
+        });
+
+        it("non-owner cannot change fee", () => {
+            const { result } = simnet.callPublicFn(
+                "tipstream",
+                "set-fee-basis-points",
+                [Cl.uint(100)],
+                wallet1
+            );
+            expect(result).toBeErr(Cl.uint(100));
+        });
     });
 
     describe("Batch Tipping", () => {
