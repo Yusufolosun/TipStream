@@ -23,6 +23,16 @@ const MIN_TIP_STX = 0.001;
 const MAX_TIP_STX = 10000;
 const COOLDOWN_SECONDS = 10;
 
+const TIP_CATEGORIES = [
+    { id: 0, label: 'General' },
+    { id: 1, label: 'Content Creation' },
+    { id: 2, label: 'Open Source' },
+    { id: 3, label: 'Community Help' },
+    { id: 4, label: 'Appreciation' },
+    { id: 5, label: 'Education' },
+    { id: 6, label: 'Bug Bounty' },
+];
+
 export default function SendTip({ addToast }) {
     const { notifyTipSent } = useTipContext();
     const { toUsd } = useStxPrice();
@@ -30,6 +40,7 @@ export default function SendTip({ addToast }) {
     const [amount, setAmount] = useState('');
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(false);
+    const [category, setCategory] = useState(0);
     const [showConfirm, setShowConfirm] = useState(false);
     const [pendingTx, setPendingTx] = useState(null);
     const [recipientError, setRecipientError] = useState('');
@@ -169,7 +180,8 @@ export default function SendTip({ addToast }) {
             const functionArgs = [
                 principalCV(recipient),
                 uintCV(microSTX),
-                stringUtf8CV(message || 'Thanks!')
+                stringUtf8CV(message || 'Thanks!'),
+                uintCV(category)
             ];
 
             const options = {
@@ -177,7 +189,7 @@ export default function SendTip({ addToast }) {
                 appDetails,
                 contractAddress: CONTRACT_ADDRESS,
                 contractName: CONTRACT_NAME,
-                functionName: 'send-tip',
+                functionName: 'send-categorized-tip',
                 functionArgs,
                 postConditions,
                 postConditionMode: PostConditionMode.Deny,
@@ -191,6 +203,7 @@ export default function SendTip({ addToast }) {
                     setRecipient('');
                     setAmount('');
                     setMessage('');
+                    setCategory(0);
                     notifyTipSent();
                     refetchBalance();
                     startCooldown();
@@ -299,6 +312,23 @@ export default function SendTip({ addToast }) {
                     </div>
                 </div>
 
+                <div>
+                    <label className="block text-sm font-semibold text-gray-600 dark:text-gray-300 mb-2">
+                        Category
+                    </label>
+                    <select
+                        value={category}
+                        onChange={(e) => setCategory(Number(e.target.value))}
+                        className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-400 focus:border-transparent transition-all outline-none"
+                    >
+                        {TIP_CATEGORIES.map((cat) => (
+                            <option key={cat.id} value={cat.id}>
+                                {cat.label}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
                 {amount && parseFloat(amount) > 0 && (
                     <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 text-sm">
                         <p className="font-semibold text-gray-700 mb-2">Transaction Breakdown</p>
@@ -385,6 +415,7 @@ export default function SendTip({ addToast }) {
                 <div className="space-y-2">
                     <p>You are about to send <strong>{amount} STX</strong> to:</p>
                     <p className="font-mono text-xs bg-gray-100 p-2 rounded break-all">{recipient}</p>
+                    <p className="text-sm text-gray-600">Category: <strong>{TIP_CATEGORIES.find(c => c.id === category)?.label || 'General'}</strong></p>
                     {message && <p className="italic text-gray-500">"{message}"</p>}
                 </div>
             </ConfirmDialog>

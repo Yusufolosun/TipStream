@@ -9,6 +9,16 @@ import ShareTip from './ShareTip';
 
 const API_BASE = 'https://api.hiro.so';
 
+const CATEGORY_LABELS = {
+    0: 'General',
+    1: 'Content Creation',
+    2: 'Open Source',
+    3: 'Community Help',
+    4: 'Appreciation',
+    5: 'Education',
+    6: 'Bug Bounty',
+};
+
 export default function TipHistory({ userAddress }) {
     const { refreshCounter } = useTipContext();
     const [stats, setStats] = useState(null);
@@ -16,6 +26,7 @@ export default function TipHistory({ userAddress }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [tab, setTab] = useState('all');
+    const [categoryFilter, setCategoryFilter] = useState('all');
     const [lastRefresh, setLastRefresh] = useState(null);
 
     const fetchData = useCallback(async () => {
@@ -42,14 +53,24 @@ export default function TipHistory({ userAddress }) {
             const jsonResult = cvToJSON(statsResult);
             setStats(jsonResult.value);
 
-            const userTips = tipsResult.results
+            const allEvents = tipsResult.results
                 .filter(e => e.contract_log?.value?.repr)
                 .map(e => parseTipEvent(e.contract_log.value.repr))
-                .filter(t => t && t.event === 'tip-sent')
+                .filter(Boolean);
+
+            // Build a map of tip-id → category from tip-categorized events
+            const categoryMap = {};
+            allEvents
+                .filter(e => e.event === 'tip-categorized')
+                .forEach(e => { categoryMap[e.tipId] = Number(e.category || 0); });
+
+            const userTips = allEvents
+                .filter(t => t.event === 'tip-sent')
                 .filter(t => t.sender === userAddress || t.recipient === userAddress)
                 .map(t => ({
                     ...t,
                     direction: t.sender === userAddress ? 'sent' : 'received',
+                    category: categoryMap[t.tipId] ?? null,
                 }));
 
             setTips(userTips);
@@ -86,6 +107,7 @@ export default function TipHistory({ userAddress }) {
             const feeMatch = repr.match(/fee\s+u(\d+)/);
             const messageMatch = repr.match(/message\s+u"([^"]*)"/);
             const tipIdMatch = repr.match(/tip-id\s+u(\d+)/);
+            const categoryMatch = repr.match(/category\s+u(\d+)/);
             return {
                 event: eventMatch[1],
                 sender: senderMatch ? senderMatch[1] : '',
@@ -94,6 +116,7 @@ export default function TipHistory({ userAddress }) {
                 fee: feeMatch ? feeMatch[1] : '0',
                 message: messageMatch ? messageMatch[1] : '',
                 tipId: tipIdMatch ? tipIdMatch[1] : '0',
+                category: categoryMatch ? categoryMatch[1] : null,
             };
         } catch {
             return null;
@@ -103,8 +126,9 @@ export default function TipHistory({ userAddress }) {
     const truncateAddr = (addr) => `${addr.slice(0, 8)}...${addr.slice(-6)}`;
 
     const filteredTips = tips.filter(t => {
-        if (tab === 'sent') return t.direction === 'sent';
-        if (tab === 'received') return t.direction === 'received';
+        if (tab === 'sent' && t.direction !== 'sent') return false;
+        if (tab === 'received' && t.direction !== 'received') return false;
+        if (categoryFilter !== 'all' && t.category !== Number(categoryFilter)) return false;
         return true;
     });
 
@@ -195,9 +219,9 @@ export default function TipHistory({ userAddress }) {
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
                     <h3 className="text-lg font-bold text-gray-800">Tip History</h3>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                         {['all', 'sent', 'received'].map((t) => (
                             <button
                                 key={t}
@@ -207,6 +231,16 @@ export default function TipHistory({ userAddress }) {
                                 {t}
                             </button>
                         ))}
+                        <select
+                            value={categoryFilter}
+                            onChange={(e) => setCategoryFilter(e.target.value)}
+                            className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 border-none outline-none hover:bg-slate-200 transition-all dark:bg-gray-800 dark:text-gray-300"
+                        >
+                            <option value="all">All Categories</option>
+                            {Object.entries(CATEGORY_LABELS).map(([id, label]) => (
+                                <option key={id} value={id}>{label}</option>
+                            ))}
+                        </select>
                     </div>
                 </div>
 
@@ -235,9 +269,16 @@ export default function TipHistory({ userAddress }) {
                                                 className="text-slate-400 hover:text-slate-600"
                                             />
                                         </div>
-                                        {tip.message && (
-                                            <p className="text-xs text-slate-400 mt-0.5 italic">"{tip.message}"</p>
-                                        )}
+                                        <div className="flex items-center gap-1.5 mt-0.5">
+                                            {tip.category != null && CATEGORY_LABELS[tip.category] && (
+                                                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                                                    {CATEGORY_LABELS[tip.category]}
+                                                </span>
+                                            )}
+                                            {tip.message && (
+                                                <span className="text-xs text-slate-400 italic">"{tip.message}"</span>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                                 <p className={`font-black ${tip.direction === 'sent' ? 'text-red-600' : 'text-green-600'}`}>
