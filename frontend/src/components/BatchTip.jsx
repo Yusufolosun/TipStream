@@ -13,6 +13,7 @@ import { network, appDetails, userSession } from '../utils/stacks';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 import { toMicroSTX, formatSTX } from '../lib/utils';
 import { useTipContext } from '../context/TipContext';
+import { analytics } from '../lib/analytics';
 
 const MAX_RECIPIENTS = 50;
 const MIN_TIP_STX = 0.001;
@@ -94,6 +95,7 @@ export default function BatchTip({ addToast }) {
   const handleSubmit = async () => {
     if (!validate()) return;
     setSending(true);
+    analytics.trackBatchTipStarted();
 
     try {
       const totalMicro = toMicroSTX(totalAmount + totalFee);
@@ -123,6 +125,7 @@ export default function BatchTip({ addToast }) {
         ],
         onFinish: () => {
           notifyTipSent();
+          analytics.trackBatchTipSubmitted();
           addToast(`Batch of ${validEntries.length} tips submitted`, 'success');
           setEntries([emptyEntry(), emptyEntry()]);
         },
@@ -131,6 +134,7 @@ export default function BatchTip({ addToast }) {
         },
       });
     } catch (err) {
+      analytics.trackError('BatchTip', err.message || 'Unknown error');
       addToast(err.message || 'Failed to send batch tips', 'error');
     } finally {
       setSending(false);

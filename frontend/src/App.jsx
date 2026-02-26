@@ -7,6 +7,7 @@ import OfflineBanner from './components/OfflineBanner';
 import Onboarding from './components/Onboarding';
 import { AnimatedHero } from './components/ui/animated-hero';
 import { ToastContainer, useToast } from './components/ui/toast';
+import { analytics } from './lib/analytics';
 
 const TipHistory = lazy(() => import('./components/TipHistory'));
 const PlatformStats = lazy(() => import('./components/PlatformStats'));
@@ -27,18 +28,26 @@ function App() {
     if (userSession.isUserSignedIn()) {
       setUserData(userSession.loadUserData());
     }
+    analytics.trackSession();
   }, []);
+
+  useEffect(() => {
+    analytics.trackPageView(location.pathname);
+    analytics.trackTabNavigation(location.pathname);
+  }, [location.pathname]);
 
   const handleAuth = async () => {
     if (userData) {
       disconnect();
       setUserData(null);
+      analytics.trackWalletDisconnect();
       return;
     }
 
     setAuthLoading(true);
     try {
       await authenticate();
+      analytics.trackWalletConnect();
     } catch (error) {
       console.error('Authentication failed:', error.message || error);
       addToast(error.message || 'Failed to connect wallet. Please try again.', 'error');

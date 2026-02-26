@@ -10,6 +10,7 @@ import {
 import { network, appDetails, userSession } from '../utils/stacks';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 import { formatSTX } from '../lib/utils';
+import { analytics } from '../lib/analytics';
 
 export default function AdminDashboard({ addToast }) {
     const [stats, setStats] = useState(null);
@@ -19,6 +20,7 @@ export default function AdminDashboard({ addToast }) {
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
     const [isOwner, setIsOwner] = useState(false);
+    const [analyticsData, setAnalyticsData] = useState(null);
 
     const userAddress = userSession.isUserSignedIn()
         ? userSession.loadUserData().profile.stxAddress.mainnet
@@ -72,6 +74,7 @@ export default function AdminDashboard({ addToast }) {
 
     useEffect(() => {
         fetchAdminData();
+        setAnalyticsData(analytics.getSummary());
     }, [fetchAdminData]);
 
     const handlePauseToggle = async () => {
@@ -157,6 +160,104 @@ export default function AdminDashboard({ addToast }) {
         );
     }
 
+    const AnalyticsPanel = () => {
+        if (!analyticsData) return null;
+        const a = analyticsData;
+
+        return (
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-5">
+                <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold text-gray-800">Usage Analytics</h3>
+                    <button
+                        onClick={() => setAnalyticsData(analytics.getSummary())}
+                        className="text-xs text-gray-500 hover:text-gray-700 font-medium"
+                    >
+                        Refresh
+                    </button>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="bg-gray-50 rounded-xl p-3 text-center">
+                        <p className="text-2xl font-black text-gray-900">{a.totalPageViews}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">Page Views</p>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-3 text-center">
+                        <p className="text-2xl font-black text-gray-900">{a.walletConnections}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">Wallet Connects</p>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-3 text-center">
+                        <p className="text-2xl font-black text-gray-900">{a.sessions}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">Sessions</p>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-3 text-center">
+                        <p className="text-2xl font-black text-gray-900">{a.totalErrors}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">Errors</p>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Tip Funnel</h4>
+                    <div className="space-y-1.5">
+                        {[
+                            ['Started', a.tipsStarted],
+                            ['Submitted', a.tipsSubmitted],
+                            ['Confirmed', a.tipsConfirmed],
+                            ['Cancelled', a.tipsCancelled],
+                            ['Failed', a.tipsFailed],
+                        ].map(([label, count]) => (
+                            <div key={label} className="flex items-center justify-between text-sm">
+                                <span className="text-gray-600">{label}</span>
+                                <span className="font-semibold text-gray-900">{count}</span>
+                            </div>
+                        ))}
+                        <div className="border-t border-gray-100 pt-1.5 flex items-center justify-between text-sm">
+                            <span className="text-gray-600">Completion Rate</span>
+                            <span className="font-bold text-green-600">{a.tipCompletionRate}%</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-600">Drop-off Rate</span>
+                            <span className="font-bold text-orange-500">{a.tipDropOffRate}%</span>
+                        </div>
+                    </div>
+                </div>
+
+                {a.sortedTabs.length > 0 && (
+                    <div>
+                        <h4 className="text-sm font-semibold text-gray-700 mb-2">Tab Navigation</h4>
+                        <div className="space-y-1">
+                            {a.sortedTabs.map(([tab, count]) => (
+                                <div key={tab} className="flex items-center justify-between text-sm">
+                                    <span className="text-gray-600 font-mono text-xs">{tab}</span>
+                                    <span className="font-semibold text-gray-900">{count}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {a.sortedErrors.length > 0 && (
+                    <div>
+                        <h4 className="text-sm font-semibold text-gray-700 mb-2">Top Errors</h4>
+                        <div className="space-y-1">
+                            {a.sortedErrors.map(([error, count]) => (
+                                <div key={error} className="flex items-center justify-between text-sm">
+                                    <span className="text-gray-600 truncate max-w-[70%]" title={error}>{error}</span>
+                                    <span className="font-semibold text-red-600">{count}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {a.firstSeen && (
+                    <p className="text-xs text-gray-400 text-right">
+                        Tracking since {new Date(a.firstSeen).toLocaleDateString()}
+                    </p>
+                )}
+            </div>
+        );
+    };
+
     return (
         <div className="max-w-2xl mx-auto space-y-6">
             <h2 className="text-2xl font-bold text-gray-800">Admin Dashboard</h2>
@@ -223,6 +324,8 @@ export default function AdminDashboard({ addToast }) {
                     </button>
                 </div>
             </div>
+
+            <AnalyticsPanel />
         </div>
     );
 }
