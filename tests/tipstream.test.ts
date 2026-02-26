@@ -642,6 +642,85 @@ describe("TipStream Contract Tests", () => {
         });
     });
 
+    describe("Concurrent Tipping", () => {
+        it("maintains consistent state with multiple users tipping in sequence", () => {
+            const wallet3 = accounts.get("wallet_3")!;
+
+            simnet.callPublicFn(
+                "tipstream", "send-tip",
+                [Cl.principal(wallet2), Cl.uint(1000000), Cl.stringUtf8("User 1 tip")],
+                wallet1
+            );
+
+            simnet.callPublicFn(
+                "tipstream", "send-tip",
+                [Cl.principal(wallet1), Cl.uint(2000000), Cl.stringUtf8("User 2 tip")],
+                wallet2
+            );
+
+            simnet.callPublicFn(
+                "tipstream", "send-tip",
+                [Cl.principal(wallet2), Cl.uint(500000), Cl.stringUtf8("User 3 tip")],
+                wallet3
+            );
+
+            const { result: stats } = simnet.callReadOnlyFn(
+                "tipstream", "get-platform-stats", [], deployer
+            );
+
+            expect(stats).toBeTuple({
+                "total-tips": Cl.uint(3),
+                "total-volume": Cl.uint(3500000),
+                "platform-fees": Cl.uint(17500)
+            });
+
+            const { result: w1Stats } = simnet.callReadOnlyFn(
+                "tipstream", "get-user-stats", [Cl.principal(wallet1)], deployer
+            );
+            expect(w1Stats).toBeTuple({
+                "tips-sent": Cl.uint(1),
+                "tips-received": Cl.uint(1),
+                "total-sent": Cl.uint(1000000),
+                "total-received": Cl.uint(2000000)
+            });
+
+            const { result: w2Stats } = simnet.callReadOnlyFn(
+                "tipstream", "get-user-stats", [Cl.principal(wallet2)], deployer
+            );
+            expect(w2Stats).toBeTuple({
+                "tips-sent": Cl.uint(1),
+                "tips-received": Cl.uint(2),
+                "total-sent": Cl.uint(2000000),
+                "total-received": Cl.uint(1500000)
+            });
+        });
+
+        it("assigns sequential tip IDs across concurrent senders", () => {
+            const wallet3 = accounts.get("wallet_3")!;
+
+            const { result: r1 } = simnet.callPublicFn(
+                "tipstream", "send-tip",
+                [Cl.principal(wallet2), Cl.uint(1000000), Cl.stringUtf8("First")],
+                wallet1
+            );
+            expect(r1).toBeOk(Cl.uint(0));
+
+            const { result: r2 } = simnet.callPublicFn(
+                "tipstream", "send-tip",
+                [Cl.principal(wallet1), Cl.uint(1000000), Cl.stringUtf8("Second")],
+                wallet2
+            );
+            expect(r2).toBeOk(Cl.uint(1));
+
+            const { result: r3 } = simnet.callPublicFn(
+                "tipstream", "send-tip",
+                [Cl.principal(wallet1), Cl.uint(1000000), Cl.stringUtf8("Third")],
+                wallet3
+            );
+            expect(r3).toBeOk(Cl.uint(2));
+        });
+    });
+
     describe("Multi-sig Governance", () => {
         const multisigContract = () => `${deployer}.tipstream-multisig`;
 
