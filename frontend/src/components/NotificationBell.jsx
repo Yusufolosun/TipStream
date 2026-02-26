@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { formatSTX } from '../lib/utils';
+import { formatSTX, formatAddress } from '../lib/utils';
 
 export default function NotificationBell({ notifications, unreadCount, onMarkRead, loading }) {
     const [open, setOpen] = useState(false);
@@ -22,8 +22,7 @@ export default function NotificationBell({ notifications, unreadCount, onMarkRea
         }
     };
 
-    const truncateAddr = (addr) =>
-        addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : '';
+    const truncateAddr = (addr) => formatAddress(addr, 6, 4);
 
     return (
         <div className="relative" ref={dropdownRef}>
