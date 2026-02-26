@@ -157,19 +157,19 @@ export default function SendTip({ addToast }) {
     };
 
     return (
-        <div className="max-w-md mx-auto p-6 bg-white rounded-xl shadow-lg border border-gray-100">
-            <h2 className="text-2xl font-bold mb-6 text-gray-800">Send a Tip</h2>
+        <div className="max-w-md mx-auto p-6 bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800">
+            <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100">Send a Tip</h2>
 
             <div className="space-y-5">
                 <div>
-                    <label className="block text-sm font-semibold text-gray-600 mb-2">
+                    <label className="block text-sm font-semibold text-gray-600 dark:text-gray-300 mb-2">
                         Recipient Address
                     </label>
                     <input
                         type="text"
                         value={recipient}
                         onChange={(e) => handleRecipientChange(e.target.value)}
-                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all outline-none ${recipientError ? 'border-red-300 bg-red-50' : 'border-gray-200'}`}
+                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-400 focus:border-transparent transition-all outline-none dark:bg-gray-800 dark:text-white ${recipientError ? 'border-red-300 bg-red-50 dark:bg-red-900/20' : 'border-gray-200 dark:border-gray-700'}`}
                         placeholder="SP2..."
                     />
                     {recipientError && (
@@ -178,14 +178,14 @@ export default function SendTip({ addToast }) {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-semibold text-gray-600 mb-2">
+                    <label className="block text-sm font-semibold text-gray-600 dark:text-gray-300 mb-2">
                         Amount (STX)
                     </label>
                     <input
                         type="number"
                         value={amount}
                         onChange={(e) => handleAmountChange(e.target.value)}
-                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all outline-none ${amountError ? 'border-red-300 bg-red-50' : 'border-gray-200'}`}
+                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-400 focus:border-transparent transition-all outline-none dark:bg-gray-800 dark:text-white ${amountError ? 'border-red-300 bg-red-50 dark:bg-red-900/20' : 'border-gray-200 dark:border-gray-700'}`}
                         placeholder="0.5"
                         step="0.001"
                         min={MIN_TIP_STX}
@@ -197,13 +197,13 @@ export default function SendTip({ addToast }) {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-semibold text-gray-600 mb-2">
+                    <label className="block text-sm font-semibold text-gray-600 dark:text-gray-300 mb-2">
                         Message (optional)
                     </label>
                     <textarea
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all outline-none resize-none"
+                        className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-400 focus:border-transparent transition-all outline-none resize-none"
                         placeholder="Great work!"
                         maxLength={280}
                         rows={3}
