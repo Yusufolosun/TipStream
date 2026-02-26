@@ -2,7 +2,6 @@
 ;; Version: 1.0.0
 
 ;; Constants
-(define-constant contract-owner tx-sender)
 (define-constant err-owner-only (err u100))
 (define-constant err-invalid-amount (err u101))
 (define-constant err-insufficient-balance (err u102))
@@ -11,12 +10,15 @@
 (define-constant err-invalid-profile (err u105))
 (define-constant err-user-blocked (err u106))
 (define-constant err-contract-paused (err u107))
+(define-constant err-not-pending-owner (err u108))
 
 (define-constant basis-points-divisor u10000)
 (define-constant min-tip-amount u1000)
 (define-constant min-fee u1)
 
 ;; Data Variables
+(define-data-var contract-owner principal tx-sender)
+(define-data-var pending-owner (optional principal) none)
 (define-data-var total-tips-sent uint u0)
 (define-data-var total-volume uint u0)
 (define-data-var platform-fees uint u0)
@@ -86,7 +88,7 @@
         (asserts! (not (default-to false (map-get? blocked-users { blocker: recipient, blocked: tx-sender }))) err-user-blocked)
         
         (try! (stx-transfer? net-amount tx-sender recipient))
-        (try! (stx-transfer? fee tx-sender contract-owner))
+        (try! (stx-transfer? fee tx-sender (var-get contract-owner)))
         
         (map-set tips
             { tip-id: tip-id }
@@ -174,7 +176,7 @@
 ;; Admin Functions
 (define-public (set-paused (paused bool))
     (begin
-        (asserts! (is-eq tx-sender contract-owner) err-owner-only)
+        (asserts! (is-eq tx-sender (var-get contract-owner)) err-owner-only)
         (var-set is-paused paused)
         (print { event: "contract-paused", paused: paused })
         (ok true)
@@ -183,10 +185,32 @@
 
 (define-public (set-fee-basis-points (new-fee uint))
     (begin
-        (asserts! (is-eq tx-sender contract-owner) err-owner-only)
+        (asserts! (is-eq tx-sender (var-get contract-owner)) err-owner-only)
         (asserts! (<= new-fee u1000) err-invalid-amount)
         (var-set current-fee-basis-points new-fee)
         (print { event: "fee-updated", new-fee: new-fee })
+        (ok true)
+    )
+)
+
+(define-public (propose-new-owner (new-owner principal))
+    (begin
+        (asserts! (is-eq tx-sender (var-get contract-owner)) err-owner-only)
+        (var-set pending-owner (some new-owner))
+        (print { event: "ownership-proposed", current-owner: tx-sender, proposed-owner: new-owner })
+        (ok true)
+    )
+)
+
+(define-public (accept-ownership)
+    (let
+        (
+            (new-owner (unwrap! (var-get pending-owner) err-not-pending-owner))
+        )
+        (asserts! (is-eq tx-sender new-owner) err-not-pending-owner)
+        (var-set contract-owner new-owner)
+        (var-set pending-owner none)
+        (print { event: "ownership-transferred", new-owner: new-owner })
         (ok true)
     )
 )
@@ -235,6 +259,14 @@
 
 (define-read-only (get-min-tip-amount)
     (ok min-tip-amount)
+)
+
+(define-read-only (get-contract-owner)
+    (ok (var-get contract-owner))
+)
+
+(define-read-only (get-pending-owner)
+    (ok (var-get pending-owner))
 )
 
 (define-read-only (get-fee-for-amount (amount uint))
