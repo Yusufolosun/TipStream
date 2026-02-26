@@ -12,6 +12,7 @@ const Leaderboard = lazy(() => import('./components/Leaderboard'));
 const ProfileManager = lazy(() => import('./components/ProfileManager'));
 const BlockManager = lazy(() => import('./components/BlockManager'));
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
+const BatchTip = lazy(() => import('./components/BatchTip'));
 
 function App() {
   const [userData, setUserData] = useState(null);
@@ -49,6 +50,7 @@ function App() {
     { id: 'recent', label: 'Recent Tips', icon: '📡' },
     { id: 'stats', label: 'Platform Stats', icon: '📊' },
     { id: 'leaderboard', label: 'Leaderboard', icon: '🏆' },
+    { id: 'batch', label: 'Batch Tip', icon: '📦' },
     { id: 'profile', label: 'Profile', icon: '⚙️' },
     { id: 'privacy', label: 'Privacy', icon: '🔒' },
     { id: 'admin', label: 'Admin', icon: '🛠️' },
@@ -143,6 +145,7 @@ function App() {
                 {activeTab === 'stats' && <PlatformStats />}
                 {activeTab === 'recent' && <RecentTips addToast={addToast} />}
                 {activeTab === 'leaderboard' && <Leaderboard />}
+                {activeTab === 'batch' && <BatchTip addToast={addToast} />}
                 {activeTab === 'profile' && <ProfileManager addToast={addToast} />}
                 {activeTab === 'privacy' && <BlockManager addToast={addToast} />}
                 {activeTab === 'admin' && <AdminDashboard addToast={addToast} />}
