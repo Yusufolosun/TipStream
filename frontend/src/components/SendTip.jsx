@@ -12,6 +12,7 @@ import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 import { toMicroSTX, formatSTX } from '../lib/utils';
 import { useTipContext } from '../context/TipContext';
 import ConfirmDialog from './ui/confirm-dialog';
+import TxStatus from './ui/tx-status';
 
 const FEE_BASIS_POINTS = 50;
 const BASIS_POINTS_DIVISOR = 10000;
@@ -262,29 +263,19 @@ export default function SendTip({ addToast }) {
             </div>
 
             {pendingTx && (
-                <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                        <span className="relative flex h-3 w-3">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
-                        </span>
-                        <p className="text-sm font-semibold text-yellow-800">Transaction Pending</p>
-                    </div>
-                    <p className="text-sm text-yellow-700 mb-1">
+                <div className="mt-6">
+                    <p className="text-sm text-gray-700 mb-1">
                         Sent {pendingTx.amount} STX to{' '}
                         <span className="font-mono text-xs">{pendingTx.recipient.slice(0, 8)}...{pendingTx.recipient.slice(-4)}</span>
                     </p>
-                    <a
-                        href={`https://explorer.hiro.so/txid/${pendingTx.txId}?chain=mainnet`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-yellow-900 underline hover:no-underline"
-                    >
-                        View on Explorer
-                    </a>
+                    <TxStatus
+                        txId={pendingTx.txId}
+                        onConfirmed={() => addToast('Tip confirmed on-chain!', 'success')}
+                        onFailed={(reason) => addToast(`Transaction failed: ${reason}`, 'error')}
+                    />
                     <button
                         onClick={() => setPendingTx(null)}
-                        className="block mt-2 text-xs text-yellow-600 hover:text-yellow-800"
+                        className="mt-2 text-xs text-gray-500 hover:text-gray-700"
                     >
                         Dismiss
                     </button>
