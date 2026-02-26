@@ -141,7 +141,7 @@ function App() {
                   <TipHistory userAddress={userData.profile.stxAddress.mainnet} />
                 )}
                 {activeTab === 'stats' && <PlatformStats />}
-                {activeTab === 'recent' && <RecentTips />}
+                {activeTab === 'recent' && <RecentTips addToast={addToast} />}
                 {activeTab === 'leaderboard' && <Leaderboard />}
                 {activeTab === 'profile' && <ProfileManager addToast={addToast} />}
                 {activeTab === 'privacy' && <BlockManager addToast={addToast} />}
