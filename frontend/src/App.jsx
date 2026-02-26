@@ -91,32 +91,36 @@ function App() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {userData ? (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="flex flex-wrap justify-center gap-3 mb-16">
-              <div
-                role="tablist"
-                aria-label="Main navigation"
-                className="inline-flex p-1.5 bg-white/80 backdrop-blur-md rounded-[2rem] shadow-xl shadow-gray-500/5 border border-gray-100"
-                onKeyDown={handleTabKeyDown}
-              >
-                {tabs.map((tab, index) => (
-                  <button
-                    key={tab.id}
-                    ref={(el) => { tabRefs.current[index] = el; }}
-                    role="tab"
-                    aria-selected={activeTab === tab.id}
-                    aria-controls={`tabpanel-${tab.id}`}
-                    id={`tab-${tab.id}`}
-                    tabIndex={activeTab === tab.id ? 0 : -1}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center space-x-2 px-6 py-3 rounded-[1.5rem] text-sm font-bold transition-all duration-300 ${activeTab === tab.id
-                      ? 'bg-slate-900 text-white shadow-lg shadow-slate-200'
-                      : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
-                      }`}
+            <div className="mb-16 -mx-4 sm:mx-0">
+              <div className="overflow-x-auto scrollbar-hide px-4 sm:px-0">
+                <div className="flex justify-start sm:justify-center min-w-max sm:min-w-0">
+                  <div
+                    role="tablist"
+                    aria-label="Main navigation"
+                    className="inline-flex p-1.5 bg-white/80 backdrop-blur-md rounded-[2rem] shadow-xl shadow-gray-500/5 border border-gray-100"
+                    onKeyDown={handleTabKeyDown}
                   >
-                    <span>{tab.icon}</span>
-                    <span className={activeTab === tab.id ? 'block' : 'hidden sm:block'}>{tab.label}</span>
-                  </button>
-                ))}
+                    {tabs.map((tab, index) => (
+                      <button
+                        key={tab.id}
+                        ref={(el) => { tabRefs.current[index] = el; }}
+                        role="tab"
+                        aria-selected={activeTab === tab.id}
+                        aria-controls={`tabpanel-${tab.id}`}
+                        id={`tab-${tab.id}`}
+                        tabIndex={activeTab === tab.id ? 0 : -1}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`flex items-center space-x-2 px-4 sm:px-6 py-3 rounded-[1.5rem] text-sm font-bold transition-all duration-300 min-h-[44px] ${activeTab === tab.id
+                          ? 'bg-slate-900 text-white shadow-lg shadow-slate-200'
+                          : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                          }`}
+                      >
+                        <span>{tab.icon}</span>
+                        <span className={activeTab === tab.id ? 'block' : 'hidden sm:block'}>{tab.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -158,9 +162,9 @@ function App() {
       </main>
 
       <footer className="border-t border-gray-100 bg-white mt-auto">
-        <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row justify-between items-center text-gray-500 text-sm font-medium">
-          <p>© 2025 TipStream - Built with Transparency</p>
-          <nav aria-label="Footer links" className="flex space-x-8 mt-4 md:mt-0">
+        <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row justify-between items-center text-gray-500 text-sm font-medium gap-4">
+          <p className="text-center md:text-left">© 2025 TipStream - Built with Transparency</p>
+          <nav aria-label="Footer links" className="flex flex-wrap justify-center gap-4 sm:gap-8">
             <a href="https://x.com/search?q=%23TipStream" target="_blank" rel="noopener noreferrer" className="hover:text-gray-900 transition-colors">Twitter</a>
             <a href="https://github.com/Mosas2000/TipStream" target="_blank" rel="noopener noreferrer" className="hover:text-gray-900 transition-colors">GitHub</a>
             <a href="https://explorer.hiro.so/txid/SP31PKQVQZVZCK3FM3NH67CGD6G1FMR17VQVS2W5T.tipstream?chain=mainnet" target="_blank" rel="noopener noreferrer" className="hover:text-gray-900 transition-colors">Contract</a>
