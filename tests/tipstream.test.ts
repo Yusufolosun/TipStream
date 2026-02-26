@@ -420,6 +420,29 @@ describe("TipStream Contract Tests", () => {
             );
             expect(result).toBeErr(Cl.uint(100));
         });
+
+        it("sending a tip with zero fee transfers full amount to recipient", () => {
+            simnet.callPublicFn(
+                "tipstream",
+                "set-fee-basis-points",
+                [Cl.uint(0)],
+                deployer
+            );
+
+            const { result, events } = simnet.callPublicFn(
+                "tipstream",
+                "send-tip",
+                [Cl.principal(wallet2), Cl.uint(1000000), Cl.stringUtf8("No fee tip")],
+                wallet1
+            );
+
+            expect(result).toBeOk(Cl.uint(0));
+
+            const transfers = events.filter(e => e.event === "stx_transfer_event");
+            expect(transfers).toHaveLength(1);
+            expect(transfers[0].data.amount).toBe("1000000");
+            expect(transfers[0].data.recipient).toBe(wallet2);
+        });
     });
 
     describe("Batch Tipping", () => {
