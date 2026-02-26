@@ -14,6 +14,8 @@ import ConfirmDialog from './ui/confirm-dialog';
 
 const FEE_BASIS_POINTS = 50;
 const BASIS_POINTS_DIVISOR = 10000;
+const MIN_TIP_STX = 0.001;
+const MAX_TIP_STX = 10000;
 
 export default function SendTip({ addToast }) {
     const [recipient, setRecipient] = useState('');
@@ -23,6 +25,7 @@ export default function SendTip({ addToast }) {
     const [showConfirm, setShowConfirm] = useState(false);
     const [pendingTx, setPendingTx] = useState(null);
     const [recipientError, setRecipientError] = useState('');
+    const [amountError, setAmountError] = useState('');
 
     const isValidStacksAddress = (address) => {
         if (!address) return false;
@@ -37,6 +40,24 @@ export default function SendTip({ addToast }) {
             setRecipientError('Enter a valid Stacks address (SP... or SM...)');
         } else {
             setRecipientError('');
+        }
+    };
+
+    const handleAmountChange = (value) => {
+        setAmount(value);
+        if (!value) {
+            setAmountError('');
+            return;
+        }
+        const parsed = parseFloat(value);
+        if (isNaN(parsed) || parsed <= 0) {
+            setAmountError('Amount must be a positive number');
+        } else if (parsed < MIN_TIP_STX) {
+            setAmountError(`Minimum tip is ${MIN_TIP_STX} STX`);
+        } else if (parsed > MAX_TIP_STX) {
+            setAmountError(`Maximum tip is ${MAX_TIP_STX.toLocaleString()} STX`);
+        } else {
+            setAmountError('');
         }
     };
 
@@ -63,8 +84,13 @@ export default function SendTip({ addToast }) {
             return;
         }
 
-        if (parsedAmount < 0.001) {
-            addToast('Minimum tip amount is 0.001 STX', 'warning');
+        if (parsedAmount < MIN_TIP_STX) {
+            addToast(`Minimum tip amount is ${MIN_TIP_STX} STX`, 'warning');
+            return;
+        }
+
+        if (parsedAmount > MAX_TIP_STX) {
+            addToast(`Maximum tip amount is ${MAX_TIP_STX.toLocaleString()} STX`, 'warning');
             return;
         }
 
@@ -154,12 +180,16 @@ export default function SendTip({ addToast }) {
                     <input
                         type="number"
                         value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all outline-none"
+                        onChange={(e) => handleAmountChange(e.target.value)}
+                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all outline-none ${amountError ? 'border-red-300 bg-red-50' : 'border-gray-200'}`}
                         placeholder="0.5"
-                        step="0.1"
-                        min="0.01"
+                        step="0.001"
+                        min={MIN_TIP_STX}
+                        max={MAX_TIP_STX}
                     />
+                    {amountError && (
+                        <p className="mt-1 text-xs text-red-500">{amountError}</p>
+                    )}
                 </div>
 
                 <div>
