@@ -55,7 +55,12 @@ export default function RecentTips({ addToast }) {
             setLastRefresh(new Date());
         } catch (err) {
             console.error('Failed to fetch recent tips:', err.message || err);
-            setError(err.message || 'Failed to load tips');
+            const isNetworkError = err.message?.includes('fetch') || err.message?.includes('network') || err.name === 'TypeError';
+            setError(
+                isNetworkError
+                    ? 'Unable to reach the Stacks API. Check your connection and try again.'
+                    : `Failed to load tips: ${err.message || 'Unknown error'}`
+            );
             setLoading(false);
         }
     }, []);
