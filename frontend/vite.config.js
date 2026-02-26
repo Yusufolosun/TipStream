@@ -61,6 +61,19 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src')
     }
   },
+  build: {
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+        widget: path.resolve(__dirname, 'src/widget.jsx'),
+      },
+      output: {
+        entryFileNames: (chunkInfo) => {
+          return chunkInfo.name === 'widget' ? 'widget.js' : 'assets/[name]-[hash].js';
+        },
+      },
+    },
+  },
   test: {
     environment: 'jsdom',
     globals: true,
