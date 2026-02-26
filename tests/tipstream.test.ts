@@ -1094,4 +1094,216 @@ describe("TipStream Contract Tests", () => {
             expect(Number(count)).toBeGreaterThanOrEqual(1);
         });
     });
+
+    describe("Recurring Subscriptions", () => {
+        it("creates subscription with initial payment and deposit", () => {
+            const { result, events } = simnet.callPublicFn(
+                "tipstream-subscription",
+                "create-subscription",
+                [
+                    Cl.principal(wallet2),
+                    Cl.uint(100000),
+                    Cl.uint(10),
+                    Cl.uint(300000),
+                    Cl.none()
+                ],
+                wallet1
+            );
+            expect(result).toBeOk(Cl.uint(0));
+
+            const stxTransfers = events.filter(e => e.event === "stx_transfer_event");
+            expect(stxTransfers.length).toBeGreaterThanOrEqual(1);
+            expect(stxTransfers[0].data.amount).toBe("100000");
+            expect(stxTransfers[0].data.recipient).toBe(wallet2);
+
+            const { result: count } = simnet.callReadOnlyFn(
+                "tipstream-subscription",
+                "get-subscription-count",
+                [],
+                wallet1
+            );
+            expect(count).toBeUint(1);
+        });
+
+        it("creator claims payment after interval", () => {
+            simnet.callPublicFn(
+                "tipstream-subscription",
+                "create-subscription",
+                [Cl.principal(wallet2), Cl.uint(100000), Cl.uint(5), Cl.uint(300000), Cl.none()],
+                wallet1
+            );
+
+            simnet.mineEmptyBlocks(5);
+
+            const { result } = simnet.callPublicFn(
+                "tipstream-subscription",
+                "claim-payment",
+                [Cl.uint(0)],
+                wallet2
+            );
+            expect(result).toBeOk(Cl.bool(true));
+
+            const { result: due } = simnet.callReadOnlyFn(
+                "tipstream-subscription",
+                "is-payment-due",
+                [Cl.uint(0)],
+                wallet2
+            );
+            expect(due).toBeBool(false);
+        });
+
+        it("relayer claims payment after interval", () => {
+            const wallet3 = accounts.get("wallet_3")!;
+
+            simnet.callPublicFn(
+                "tipstream-subscription",
+                "create-subscription",
+                [Cl.principal(wallet2), Cl.uint(50000), Cl.uint(5), Cl.uint(200000), Cl.some(Cl.principal(wallet3))],
+                wallet1
+            );
+
+            simnet.mineEmptyBlocks(5);
+
+            const { result } = simnet.callPublicFn(
+                "tipstream-subscription",
+                "claim-payment",
+                [Cl.uint(0)],
+                wallet3
+            );
+            expect(result).toBeOk(Cl.bool(true));
+        });
+
+        it("rejects claim before interval elapses", () => {
+            simnet.callPublicFn(
+                "tipstream-subscription",
+                "create-subscription",
+                [Cl.principal(wallet2), Cl.uint(100000), Cl.uint(100), Cl.uint(300000), Cl.none()],
+                wallet1
+            );
+
+            const { result } = simnet.callPublicFn(
+                "tipstream-subscription",
+                "claim-payment",
+                [Cl.uint(0)],
+                wallet2
+            );
+            expect(result).toBeErr(Cl.uint(503));
+        });
+
+        it("rejects claim from unauthorized caller", () => {
+            const wallet3 = accounts.get("wallet_3")!;
+
+            simnet.callPublicFn(
+                "tipstream-subscription",
+                "create-subscription",
+                [Cl.principal(wallet2), Cl.uint(100000), Cl.uint(5), Cl.uint(300000), Cl.none()],
+                wallet1
+            );
+
+            simnet.mineEmptyBlocks(5);
+
+            const { result } = simnet.callPublicFn(
+                "tipstream-subscription",
+                "claim-payment",
+                [Cl.uint(0)],
+                wallet3
+            );
+            expect(result).toBeErr(Cl.uint(505));
+        });
+
+        it("subscriber cancels and gets deposit refund", () => {
+            simnet.callPublicFn(
+                "tipstream-subscription",
+                "create-subscription",
+                [Cl.principal(wallet2), Cl.uint(100000), Cl.uint(10), Cl.uint(300000), Cl.none()],
+                wallet1
+            );
+
+            const { result, events } = simnet.callPublicFn(
+                "tipstream-subscription",
+                "cancel-subscription",
+                [Cl.uint(0)],
+                wallet1
+            );
+            expect(result).toBeOk(Cl.bool(true));
+
+            const transfers = events.filter(e => e.event === "stx_transfer_event");
+            expect(transfers).toHaveLength(1);
+            expect(transfers[0].data.amount).toBe("300000");
+            expect(transfers[0].data.recipient).toBe(wallet1);
+        });
+
+        it("subscriber funds subscription deposit", () => {
+            simnet.callPublicFn(
+                "tipstream-subscription",
+                "create-subscription",
+                [Cl.principal(wallet2), Cl.uint(100000), Cl.uint(10), Cl.uint(100000), Cl.none()],
+                wallet1
+            );
+
+            const { result } = simnet.callPublicFn(
+                "tipstream-subscription",
+                "fund-subscription",
+                [Cl.uint(0), Cl.uint(500000)],
+                wallet1
+            );
+            expect(result).toBeOk(Cl.bool(true));
+        });
+
+        it("subscriber updates relayer", () => {
+            const wallet3 = accounts.get("wallet_3")!;
+
+            simnet.callPublicFn(
+                "tipstream-subscription",
+                "create-subscription",
+                [Cl.principal(wallet2), Cl.uint(100000), Cl.uint(10), Cl.uint(300000), Cl.none()],
+                wallet1
+            );
+
+            const { result } = simnet.callPublicFn(
+                "tipstream-subscription",
+                "set-relayer",
+                [Cl.uint(0), Cl.some(Cl.principal(wallet3))],
+                wallet1
+            );
+            expect(result).toBeOk(Cl.bool(true));
+        });
+
+        it("get-next-payment-height returns correct value", () => {
+            simnet.callPublicFn(
+                "tipstream-subscription",
+                "create-subscription",
+                [Cl.principal(wallet2), Cl.uint(100000), Cl.uint(50), Cl.uint(300000), Cl.none()],
+                wallet1
+            );
+
+            const { result } = simnet.callReadOnlyFn(
+                "tipstream-subscription",
+                "get-next-payment-height",
+                [Cl.uint(0)],
+                wallet1
+            );
+            const nextHeight = (result as any).value.value;
+            expect(Number(nextHeight)).toBeGreaterThanOrEqual(51);
+        });
+
+        it("rejects claim when deposit is insufficient", () => {
+            simnet.callPublicFn(
+                "tipstream-subscription",
+                "create-subscription",
+                [Cl.principal(wallet2), Cl.uint(500000), Cl.uint(5), Cl.uint(100000), Cl.none()],
+                wallet1
+            );
+
+            simnet.mineEmptyBlocks(5);
+
+            const { result } = simnet.callPublicFn(
+                "tipstream-subscription",
+                "claim-payment",
+                [Cl.uint(0)],
+                wallet2
+            );
+            expect(result).toBeErr(Cl.uint(506));
+        });
+    });
 });
