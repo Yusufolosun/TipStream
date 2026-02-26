@@ -10,6 +10,7 @@ export default function PlatformStats() {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [lastRefresh, setLastRefresh] = useState(null);
 
     const fetchPlatformStats = useCallback(async () => {
         try {
@@ -25,6 +26,7 @@ export default function PlatformStats() {
             const jsonResult = cvToJSON(result);
             setStats(jsonResult.value);
             setLoading(false);
+            setLastRefresh(new Date());
         } catch (error) {
             console.error('Failed to fetch platform stats:', error.message || error);
             setError('Unable to load platform statistics. Please try again later.');
@@ -35,6 +37,11 @@ export default function PlatformStats() {
     useEffect(() => {
         fetchPlatformStats();
     }, [fetchPlatformStats, refreshCounter]);
+
+    useEffect(() => {
+        const interval = setInterval(fetchPlatformStats, 60000);
+        return () => clearInterval(interval);
+    }, [fetchPlatformStats]);
 
     if (loading) {
         return (
@@ -64,9 +71,22 @@ export default function PlatformStats() {
         <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100">
             <div className="flex items-center justify-between mb-10">
                 <h2 className="text-3xl font-black text-slate-900 tracking-tight">Global Impact</h2>
-                <div className="bg-green-100 text-green-700 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest flex items-center">
-                    <span className="h-2 w-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
-                    Live Network
+                <div className="flex items-center gap-3">
+                    {lastRefresh && (
+                        <span className="text-xs text-gray-400">
+                            Updated {lastRefresh.toLocaleTimeString()}
+                        </span>
+                    )}
+                    <button
+                        onClick={fetchPlatformStats}
+                        className="px-4 py-2 text-sm font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-colors"
+                    >
+                        Refresh
+                    </button>
+                    <div className="bg-green-100 text-green-700 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest flex items-center">
+                        <span className="h-2 w-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                        Live
+                    </div>
                 </div>
             </div>
 

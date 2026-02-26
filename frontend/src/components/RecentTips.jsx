@@ -18,6 +18,7 @@ export default function RecentTips({ addToast }) {
     const [tipBackAmount, setTipBackAmount] = useState('0.5');
     const [tipBackMessage, setTipBackMessage] = useState('');
     const [sending, setSending] = useState(false);
+    const [lastRefresh, setLastRefresh] = useState(null);
 
     const fetchRecentTips = useCallback(async () => {
         try {
@@ -42,6 +43,7 @@ export default function RecentTips({ addToast }) {
 
             setTips(tipEvents);
             setLoading(false);
+            setLastRefresh(new Date());
         } catch (err) {
             console.error('Failed to fetch recent tips:', err.message || err);
             setError(err.message || 'Failed to load tips');
@@ -52,6 +54,11 @@ export default function RecentTips({ addToast }) {
     useEffect(() => {
         fetchRecentTips();
     }, [fetchRecentTips, refreshCounter]);
+
+    useEffect(() => {
+        const interval = setInterval(fetchRecentTips, 60000);
+        return () => clearInterval(interval);
+    }, [fetchRecentTips]);
 
     const parseTipEvent = (repr) => {
         try {
@@ -155,7 +162,22 @@ export default function RecentTips({ addToast }) {
 
     return (
         <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100">
-            <h2 className="text-3xl font-black text-slate-900 tracking-tight mb-8">Live Feed</h2>
+            <div className="flex items-center justify-between mb-8">
+                <h2 className="text-3xl font-black text-slate-900 tracking-tight">Live Feed</h2>
+                <div className="flex items-center gap-3">
+                    {lastRefresh && (
+                        <span className="text-xs text-gray-400">
+                            Updated {lastRefresh.toLocaleTimeString()}
+                        </span>
+                    )}
+                    <button
+                        onClick={fetchRecentTips}
+                        className="px-4 py-2 text-sm font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-colors"
+                    >
+                        Refresh
+                    </button>
+                </div>
+            </div>
 
             {tips.length === 0 ? (
                 <div className="text-center py-20 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
