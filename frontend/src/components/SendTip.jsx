@@ -22,10 +22,38 @@ export default function SendTip({ addToast }) {
     const [loading, setLoading] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [pendingTx, setPendingTx] = useState(null);
+    const [recipientError, setRecipientError] = useState('');
+
+    const isValidStacksAddress = (address) => {
+        if (!address) return false;
+        const trimmed = address.trim();
+        if (trimmed.length < 38 || trimmed.length > 41) return false;
+        return /^(SP|SM|ST)[0-9A-Z]{33,39}$/i.test(trimmed);
+    };
+
+    const handleRecipientChange = (value) => {
+        setRecipient(value);
+        if (value && !isValidStacksAddress(value)) {
+            setRecipientError('Enter a valid Stacks address (SP... or SM...)');
+        } else {
+            setRecipientError('');
+        }
+    };
 
     const validateAndConfirm = () => {
         if (!recipient || !amount) {
             addToast('Please fill in all required fields', 'warning');
+            return;
+        }
+
+        if (!isValidStacksAddress(recipient)) {
+            addToast('Invalid Stacks address format', 'warning');
+            return;
+        }
+
+        const senderAddress = userSession.loadUserData().profile.stxAddress.mainnet;
+        if (recipient.trim() === senderAddress) {
+            addToast('You cannot send a tip to yourself', 'warning');
             return;
         }
 
@@ -110,10 +138,13 @@ export default function SendTip({ addToast }) {
                     <input
                         type="text"
                         value={recipient}
-                        onChange={(e) => setRecipient(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all outline-none"
+                        onChange={(e) => handleRecipientChange(e.target.value)}
+                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all outline-none ${recipientError ? 'border-red-300 bg-red-50' : 'border-gray-200'}`}
                         placeholder="SP2..."
                     />
+                    {recipientError && (
+                        <p className="mt-1 text-xs text-red-500">{recipientError}</p>
+                    )}
                 </div>
 
                 <div>
@@ -196,8 +227,6 @@ export default function SendTip({ addToast }) {
                     ) : 'Send Tip'}
                 </button>
             </div>
-
-            <ConfirmDialog
 
             {pendingTx && (
                 <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
