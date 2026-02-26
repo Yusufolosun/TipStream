@@ -111,7 +111,10 @@
         (asserts! (not (default-to false (map-get? blocked-users { blocker: recipient, blocked: tx-sender }))) err-user-blocked)
         
         (try! (stx-transfer? net-amount tx-sender recipient))
-        (try! (stx-transfer? fee tx-sender (var-get contract-owner)))
+        (if (> fee u0)
+            (try! (stx-transfer? fee tx-sender (var-get contract-owner)))
+            true
+        )
         
         (map-set tips
             { tip-id: tip-id }
