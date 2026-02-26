@@ -29,7 +29,12 @@ export default function PlatformStats() {
             setLastRefresh(new Date());
         } catch (error) {
             console.error('Failed to fetch platform stats:', error.message || error);
-            setError('Unable to load platform statistics. Please try again later.');
+            const isNetworkError = error.message?.includes('fetch') || error.message?.includes('network') || error.name === 'TypeError';
+            setError(
+                isNetworkError
+                    ? 'Unable to reach the Stacks API. Check your connection and try again.'
+                    : `Failed to load platform statistics: ${error.message || 'Unknown error'}`
+            );
             setLoading(false);
         }
     }, []);

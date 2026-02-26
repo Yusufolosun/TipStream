@@ -14,12 +14,14 @@ export default function TipHistory({ userAddress }) {
     const [stats, setStats] = useState(null);
     const [tips, setTips] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [tab, setTab] = useState('all');
     const [lastRefresh, setLastRefresh] = useState(null);
 
     const fetchData = useCallback(async () => {
         if (!userAddress) return;
         try {
+            setError(null);
             const [statsResult, tipsResult] = await Promise.all([
                 fetchCallReadOnlyFunction({
                     network,
@@ -31,7 +33,10 @@ export default function TipHistory({ userAddress }) {
                 }),
                 fetch(
                     `${API_BASE}/extended/v1/contract/${CONTRACT_ADDRESS}.${CONTRACT_NAME}/events?limit=50&offset=0`
-                ).then(r => r.json())
+                ).then(r => {
+                    if (!r.ok) throw new Error(`API returned ${r.status}`);
+                    return r.json();
+                })
             ]);
 
             const jsonResult = cvToJSON(statsResult);
@@ -50,8 +55,14 @@ export default function TipHistory({ userAddress }) {
             setTips(userTips);
             setLoading(false);
             setLastRefresh(new Date());
-        } catch (error) {
-            console.error('Failed to fetch tip history:', error.message || error);
+        } catch (err) {
+            console.error('Failed to fetch tip history:', err.message || err);
+            const isNetworkError = err.message?.includes('fetch') || err.message?.includes('network') || err.name === 'TypeError';
+            setError(
+                isNetworkError
+                    ? 'Unable to reach the Stacks API. Check your connection and try again.'
+                    : `Failed to load activity: ${err.message || 'Unknown error'}`
+            );
             setLoading(false);
         }
     }, [userAddress]);
@@ -102,6 +113,20 @@ export default function TipHistory({ userAddress }) {
             <div className="flex flex-col items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mb-4"></div>
                 <p className="text-gray-500 font-medium">Loading activity...</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="max-w-md mx-auto text-center py-12 bg-white dark:bg-gray-900 rounded-2xl border border-red-100 dark:border-red-900/30 p-8">
+                <p className="text-red-600 dark:text-red-400 font-medium mb-4">{error}</p>
+                <button
+                    onClick={() => { setError(null); setLoading(true); fetchData(); }}
+                    className="px-6 py-2 bg-slate-900 dark:bg-white dark:text-gray-900 text-white rounded-xl font-bold hover:bg-black dark:hover:bg-gray-100 transition-colors"
+                >
+                    Retry
+                </button>
             </div>
         );
     }
