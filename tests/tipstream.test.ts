@@ -501,4 +501,37 @@ describe("TipStream Contract Tests", () => {
             expect(pending).toBeOk(Cl.none());
         });
     });
+
+    describe("multi-user stats", () => {
+        it("returns stats for multiple users in a single call", () => {
+            simnet.callPublicFn(
+                "tipstream",
+                "send-tip",
+                [Cl.principal(wallet2), Cl.uint(1000000), Cl.stringUtf8("test")],
+                wallet1
+            );
+
+            const { result } = simnet.callReadOnlyFn(
+                "tipstream",
+                "get-multiple-user-stats",
+                [Cl.list([Cl.principal(wallet1), Cl.principal(wallet2)])],
+                deployer
+            );
+
+            expect(result).toBeOk(Cl.list([
+                Cl.tuple({
+                    "tips-sent": Cl.uint(1),
+                    "tips-received": Cl.uint(0),
+                    "total-sent": Cl.uint(1000000),
+                    "total-received": Cl.uint(0)
+                }),
+                Cl.tuple({
+                    "tips-sent": Cl.uint(0),
+                    "tips-received": Cl.uint(1),
+                    "total-sent": Cl.uint(0),
+                    "total-received": Cl.uint(1000000)
+                })
+            ]));
+        });
+    });
 });
