@@ -5,8 +5,11 @@ import {
     cvToJSON,
     boolCV,
     uintCV,
-    PostConditionMode
+    PostConditionMode,
+    principalCV
 } from '@stacks/transactions';
+import { buildPrincipalArg, CONTRACT_FUNCTIONS } from '../types/contracts';
+
 import { network, appDetails, userSession } from '../utils/stacks';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 import { formatSTX } from '../lib/utils';
@@ -33,7 +36,7 @@ export default function AdminDashboard({ addToast }) {
                     network,
                     contractAddress: CONTRACT_ADDRESS,
                     contractName: CONTRACT_NAME,
-                    functionName: 'get-platform-stats',
+                    functionName: CONTRACT_FUNCTIONS.GET_PLATFORM_STATS,
                     functionArgs: [],
                     senderAddress: CONTRACT_ADDRESS,
                 }),
@@ -41,7 +44,7 @@ export default function AdminDashboard({ addToast }) {
                     network,
                     contractAddress: CONTRACT_ADDRESS,
                     contractName: CONTRACT_NAME,
-                    functionName: 'get-contract-owner',
+                    functionName: CONTRACT_FUNCTIONS.GET_CONTRACT_OWNER || 'get-contract-owner',
                     functionArgs: [],
                     senderAddress: CONTRACT_ADDRESS,
                 }),
@@ -49,7 +52,7 @@ export default function AdminDashboard({ addToast }) {
                     network,
                     contractAddress: CONTRACT_ADDRESS,
                     contractName: CONTRACT_NAME,
-                    functionName: 'get-fee-for-amount',
+                    functionName: CONTRACT_FUNCTIONS.GET_FEE_FOR_AMOUNT || 'get-fee-for-amount',
                     functionArgs: [uintCV(10000)],
                     senderAddress: CONTRACT_ADDRESS,
                 }),
@@ -85,7 +88,7 @@ export default function AdminDashboard({ addToast }) {
                 appDetails,
                 contractAddress: CONTRACT_ADDRESS,
                 contractName: CONTRACT_NAME,
-                functionName: 'set-paused',
+                functionName: CONTRACT_FUNCTIONS.SET_PAUSED || 'set-paused',
                 functionArgs: [boolCV(!isPaused)],
                 postConditionMode: PostConditionMode.Deny,
                 postConditions: [],
@@ -120,7 +123,7 @@ export default function AdminDashboard({ addToast }) {
                 appDetails,
                 contractAddress: CONTRACT_ADDRESS,
                 contractName: CONTRACT_NAME,
-                functionName: 'set-fee-basis-points',
+                functionName: CONTRACT_FUNCTIONS.SET_FEE_BASIS_POINTS || 'set-fee-basis-points',
                 functionArgs: [uintCV(fee)],
                 postConditionMode: PostConditionMode.Deny,
                 postConditions: [],
@@ -289,11 +292,10 @@ export default function AdminDashboard({ addToast }) {
                     <button
                         onClick={handlePauseToggle}
                         disabled={actionLoading}
-                        className={`px-6 py-2 font-bold rounded-xl transition-all disabled:opacity-50 ${
-                            isPaused
+                        className={`px-6 py-2 font-bold rounded-xl transition-all disabled:opacity-50 ${isPaused
                                 ? 'bg-green-600 hover:bg-green-700 text-white'
                                 : 'bg-red-600 hover:bg-red-700 text-white'
-                        }`}
+                            }`}
                     >
                         {isPaused ? 'Resume' : 'Pause'}
                     </button>

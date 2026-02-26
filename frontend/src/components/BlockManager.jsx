@@ -3,9 +3,10 @@ import { openContractCall } from '@stacks/connect';
 import {
     fetchCallReadOnlyFunction,
     cvToJSON,
-    principalCV,
     PostConditionMode
 } from '@stacks/transactions';
+import { buildPrincipalArg, CONTRACT_FUNCTIONS } from '../types/contracts';
+
 import { network, appDetails, userSession } from '../utils/stacks';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 
@@ -35,7 +36,7 @@ export default function BlockManager({ addToast }) {
                 network,
                 contractAddress: CONTRACT_ADDRESS,
                 contractName: CONTRACT_NAME,
-                functionName: 'is-user-blocked',
+                functionName: CONTRACT_FUNCTIONS.IS_USER_BLOCKED || 'is-user-blocked',
                 functionArgs: [principalCV(userAddress), principalCV(targetAddress.trim())],
                 senderAddress: userAddress,
             });
@@ -61,8 +62,8 @@ export default function BlockManager({ addToast }) {
                 appDetails,
                 contractAddress: CONTRACT_ADDRESS,
                 contractName: CONTRACT_NAME,
-                functionName: 'toggle-block-user',
-                functionArgs: [principalCV(targetAddress.trim())],
+                functionName: CONTRACT_FUNCTIONS.TOGGLE_BLOCK_USER || 'toggle-block-user',
+                functionArgs: buildPrincipalArg(targetAddress.trim()),
                 postConditionMode: PostConditionMode.Deny,
                 postConditions: [],
                 onFinish: (data) => {
@@ -121,22 +122,20 @@ export default function BlockManager({ addToast }) {
                     <button
                         onClick={handleToggleBlock}
                         disabled={loading || !isValidAddress(targetAddress)}
-                        className={`flex-1 font-bold py-2.5 px-4 rounded-lg transition-all disabled:opacity-50 ${
-                            checkResult
+                        className={`flex-1 font-bold py-2.5 px-4 rounded-lg transition-all disabled:opacity-50 ${checkResult
                                 ? 'bg-green-600 hover:bg-green-700 text-white'
                                 : 'bg-red-600 hover:bg-red-700 text-white'
-                        }`}
+                            }`}
                     >
                         {loading ? 'Processing...' : checkResult ? 'Unblock User' : 'Block User'}
                     </button>
                 </div>
 
                 {checkResult !== null && (
-                    <div className={`p-4 rounded-xl border text-sm font-medium ${
-                        checkResult
+                    <div className={`p-4 rounded-xl border text-sm font-medium ${checkResult
                             ? 'bg-red-50 border-red-200 text-red-700'
                             : 'bg-green-50 border-green-200 text-green-700'
-                    }`}>
+                        }`}>
                         {checkResult
                             ? 'This user is currently blocked from tipping you.'
                             : 'This user is not blocked.'}

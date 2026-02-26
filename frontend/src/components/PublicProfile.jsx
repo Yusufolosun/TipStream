@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { fetchCallReadOnlyFunction, cvToJSON, principalCV } from '@stacks/transactions';
+import { fetchCallReadOnlyFunction, cvToJSON } from '@stacks/transactions';
+import { buildPrincipalArg, CONTRACT_FUNCTIONS } from '../types/contracts';
+
 import { network } from '../utils/stacks';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 import { formatSTX } from '../lib/utils';
@@ -22,8 +24,8 @@ export default function PublicProfile({ addToast }) {
                 network,
                 contractAddress: CONTRACT_ADDRESS,
                 contractName: CONTRACT_NAME,
-                functionName: 'get-profile',
-                functionArgs: [principalCV(address)],
+                functionName: CONTRACT_FUNCTIONS.GET_PROFILE,
+                functionArgs: buildPrincipalArg(address),
                 senderAddress: address,
             });
 
@@ -32,8 +34,8 @@ export default function PublicProfile({ addToast }) {
                 network,
                 contractAddress: CONTRACT_ADDRESS,
                 contractName: CONTRACT_NAME,
-                functionName: 'get-user-stats',
-                functionArgs: [principalCV(address)],
+                functionName: CONTRACT_FUNCTIONS.GET_USER_STATS,
+                functionArgs: buildPrincipalArg(address),
                 senderAddress: address,
             });
 

@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { fetchCallReadOnlyFunction, cvToJSON } from '@stacks/transactions';
+import { buildPrincipalArg, CONTRACT_FUNCTIONS } from '../types/contracts';
 import { network } from '../utils/stacks';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 import { formatSTX } from '../lib/utils';
@@ -26,7 +27,7 @@ export default function PlatformStats() {
                 network,
                 contractAddress: CONTRACT_ADDRESS,
                 contractName: CONTRACT_NAME,
-                functionName: 'get-platform-stats',
+                functionName: CONTRACT_FUNCTIONS.GET_PLATFORM_STATS,
                 functionArgs: [],
                 senderAddress: CONTRACT_ADDRESS,
             });

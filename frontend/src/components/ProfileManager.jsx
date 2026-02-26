@@ -4,10 +4,10 @@ import { openContractCall } from '@stacks/connect';
 import {
     fetchCallReadOnlyFunction,
     cvToJSON,
-    principalCV,
-    stringUtf8CV,
     PostConditionMode
 } from '@stacks/transactions';
+import { buildPrincipalArg, buildUpdateProfileArgs, CONTRACT_FUNCTIONS } from '../types/contracts';
+
 import { network, appDetails, userSession } from '../utils/stacks';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 
@@ -33,8 +33,8 @@ export default function ProfileManager({ addToast }) {
                 network,
                 contractAddress: CONTRACT_ADDRESS,
                 contractName: CONTRACT_NAME,
-                functionName: 'get-profile',
-                functionArgs: [principalCV(userAddress)],
+                functionName: CONTRACT_FUNCTIONS.GET_PROFILE,
+                functionArgs: buildPrincipalArg(userAddress),
                 senderAddress: userAddress,
             });
 
@@ -71,12 +71,12 @@ export default function ProfileManager({ addToast }) {
                 appDetails,
                 contractAddress: CONTRACT_ADDRESS,
                 contractName: CONTRACT_NAME,
-                functionName: 'update-profile',
-                functionArgs: [
-                    stringUtf8CV(displayName.trim()),
-                    stringUtf8CV(bio.trim()),
-                    stringUtf8CV(avatarUrl.trim()),
-                ],
+                functionName: CONTRACT_FUNCTIONS.UPDATE_PROFILE,
+                functionArgs: buildUpdateProfileArgs({
+                    displayName: displayName.trim(),
+                    bio: bio.trim(),
+                    avatarUrl: avatarUrl.trim(),
+                }),
                 postConditionMode: PostConditionMode.Deny,
                 postConditions: [],
                 onFinish: (data) => {

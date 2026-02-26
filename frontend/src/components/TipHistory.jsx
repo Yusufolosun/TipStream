@@ -1,5 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
-import { fetchCallReadOnlyFunction, cvToJSON, principalCV } from '@stacks/transactions';
+import { fetchCallReadOnlyFunction, cvToJSON } from '@stacks/transactions';
+import { buildPrincipalArg, CONTRACT_FUNCTIONS } from '../types/contracts';
+
 import { network } from '../utils/stacks';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 import { formatSTX, formatAddress } from '../lib/utils';
@@ -64,8 +66,8 @@ export default function TipHistory({ userAddress }) {
                     network,
                     contractAddress: CONTRACT_ADDRESS,
                     contractName: CONTRACT_NAME,
-                    functionName: 'get-user-stats',
-                    functionArgs: [principalCV(userAddress)],
+                    functionName: CONTRACT_FUNCTIONS.GET_USER_STATS,
+                    functionArgs: buildPrincipalArg(userAddress),
                     senderAddress: userAddress,
                 }),
                 fetch(

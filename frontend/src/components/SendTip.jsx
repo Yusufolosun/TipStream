@@ -1,12 +1,11 @@
 import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { openContractCall } from '@stacks/connect';
 import {
-    stringUtf8CV,
-    uintCV,
-    principalCV,
     PostConditionMode,
     Pc
 } from '@stacks/transactions';
+import { buildSendCategorizedTipArgs, CONTRACT_FUNCTIONS } from '../types/contracts';
+
 import { network, appDetails, userSession } from '../utils/stacks';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 import { toMicroSTX, formatSTX } from '../lib/utils';
@@ -219,19 +218,20 @@ export default function SendTip({ addToast, defaultRecipient = '', initialAmount
                 Pc.principal(senderAddress).willSendLte(microSTX).ustx()
             ];
 
-            const functionArgs = [
-                principalCV(recipient),
-                uintCV(microSTX),
-                stringUtf8CV(message || 'Thanks!'),
-                uintCV(category)
-            ];
+            const functionArgs = buildSendCategorizedTipArgs({
+                recipient,
+                amount: microSTX,
+                message: message || 'Thanks!',
+                category
+            });
+
 
             const options = {
                 network,
                 appDetails,
                 contractAddress: CONTRACT_ADDRESS,
                 contractName: CONTRACT_NAME,
-                functionName: 'send-categorized-tip',
+                functionName: CONTRACT_FUNCTIONS.SEND_CATEGORIZED_TIP,
                 functionArgs,
                 postConditions,
                 postConditionMode: PostConditionMode.Deny,
