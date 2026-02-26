@@ -5,8 +5,7 @@ import {
     Pc
 } from '@stacks/transactions';
 import { buildSendCategorizedTipArgs, CONTRACT_FUNCTIONS } from '../types/contracts';
-
-import { network, appDetails, userSession } from '../utils/stacks';
+import { network, appDetails, userSession, authenticate } from '../utils/stacks';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 import { toMicroSTX, formatSTX } from '../lib/utils';
 import { useTipContext } from '../context/TipContext';
@@ -148,8 +147,7 @@ export default function SendTip({ addToast, defaultRecipient = '', initialAmount
             return;
         }
 
-        const currentSender = isDemo ? 'SP1DEMO000000000000000000000SANDBOX' : userSession.loadUserData().profile.stxAddress.mainnet;
-        if (recipient.trim() === currentSender) {
+        if (senderAddress && recipient.trim() === senderAddress) {
             addToast('You cannot send a tip to yourself', 'warning');
             return;
         }

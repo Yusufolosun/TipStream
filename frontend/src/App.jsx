@@ -132,7 +132,7 @@ function App() {
           }
         >
           <Routes>
-            {/* Public Profile Route */}
+            {/* Public Profile Route — accessible without authentication */}
             <Route path="/tip/:address" element={<PublicProfile addToast={addToast} />} />
 
             {/* Application Routes */}

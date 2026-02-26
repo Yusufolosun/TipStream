@@ -2,7 +2,6 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { fetchCallReadOnlyFunction, cvToJSON } from '@stacks/transactions';
 import { buildPrincipalArg, CONTRACT_FUNCTIONS } from '../types/contracts';
-
 import { network } from '../utils/stacks';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 import { formatSTX } from '../lib/utils';
