@@ -34,21 +34,28 @@ const TIP_CATEGORIES = [
     { id: 6, label: 'Bug Bounty' },
 ];
 
-export default function SendTip({ addToast }) {
+export default function SendTip({ addToast, defaultRecipient = '', initialAmount = '', initialMessage = '', initialCategory = 0 }) {
     const { notifyTipSent } = useTipContext();
     const { toUsd } = useStxPrice();
     const { isDemo, simulateTipSend, demoBalance } = useDemoMode();
-    const [recipient, setRecipient] = useState('');
-    const [amount, setAmount] = useState('');
-    const [message, setMessage] = useState('');
+    const [recipient, setRecipient] = useState(defaultRecipient);
+    const [amount, setAmount] = useState(initialAmount);
+    const [message, setMessage] = useState(initialMessage);
     const [loading, setLoading] = useState(false);
-    const [category, setCategory] = useState(0);
+    const [category, setCategory] = useState(initialCategory);
     const [showConfirm, setShowConfirm] = useState(false);
     const [pendingTx, setPendingTx] = useState(null);
     const [recipientError, setRecipientError] = useState('');
     const [amountError, setAmountError] = useState('');
     const [cooldown, setCooldown] = useState(0);
     const cooldownRef = useRef(null);
+
+    useEffect(() => {
+        if (defaultRecipient) {
+            setRecipient(defaultRecipient);
+            setRecipientError('');
+        }
+    }, [defaultRecipient]);
 
     useEffect(() => {
         return () => {
@@ -122,6 +129,11 @@ export default function SendTip({ addToast }) {
     };
 
     const validateAndConfirm = () => {
+        if (!userSession.isUserSignedIn()) {
+            authenticate().catch(e => addToast(e.message || 'Failed to connect wallet', 'error'));
+            return;
+        }
+
         if (cooldown > 0) {
             addToast(`Please wait ${cooldown}s before sending another tip`, 'warning');
             return;
@@ -201,7 +213,7 @@ export default function SendTip({ addToast }) {
 
         try {
             const microSTX = toMicroSTX(amount);
-            const senderAddress = userSession.loadUserData().profile.stxAddress.mainnet;
+            // senderAddress is already computed via useMemo
 
             const postConditions = [
                 Pc.principal(senderAddress).willSendLte(microSTX).ustx()
