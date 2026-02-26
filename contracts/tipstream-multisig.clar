@@ -113,6 +113,32 @@
     )
 )
 
+;; Dispatch admin action to the core contract
+(define-private (dispatch-action (action (string-ascii 20)) (value uint))
+    (if (is-eq action "set-paused")
+        (contract-call? .tipstream set-paused (> value u0))
+        (if (is-eq action "set-fee")
+            (contract-call? .tipstream set-fee-basis-points value)
+            (if (is-eq action "propose-fee")
+                (contract-call? .tipstream propose-fee-change value)
+                (if (is-eq action "execute-fee")
+                    (contract-call? .tipstream execute-fee-change)
+                    (if (is-eq action "cancel-fee")
+                        (contract-call? .tipstream cancel-fee-change)
+                        (if (is-eq action "propose-pause")
+                            (contract-call? .tipstream propose-pause-change (> value u0))
+                            (if (is-eq action "execute-pause")
+                                (contract-call? .tipstream execute-pause-change)
+                                (ok true)
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    )
+)
+
 ;; Execute a transaction once signature threshold is met
 (define-public (execute-tx (tx-id uint))
     (let
@@ -122,6 +148,7 @@
         (asserts! (is-signer tx-sender) err-not-signer)
         (asserts! (not (get executed tx-data)) err-already-executed)
         (asserts! (>= (get signatures tx-data) (var-get required-signatures)) err-threshold-not-met)
+        (try! (dispatch-action (get action-type tx-data) (get action-value tx-data)))
         (map-set multisig-txs
             { tx-id: tx-id }
             (merge tx-data { executed: true })
