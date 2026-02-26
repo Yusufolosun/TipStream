@@ -5,6 +5,7 @@ import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 import { formatSTX } from '../lib/utils';
 import { useTipContext } from '../context/TipContext';
 import CopyButton from './ui/copy-button';
+import ShareTip from './ShareTip';
 
 const API_BASE = 'https://api.hiro.so';
 
@@ -217,6 +218,7 @@ export default function TipHistory({ userAddress }) {
                                 <p className={`font-black ${tip.direction === 'sent' ? 'text-red-600' : 'text-green-600'}`}>
                                     {tip.direction === 'sent' ? '-' : '+'}{formatSTX(tip.amount, 2)} STX
                                 </p>
+                                <ShareTip tip={{ type: tip.direction, amount: formatSTX(tip.amount, 6) }} />
                             </div>
                         ))}
                     </div>
