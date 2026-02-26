@@ -1,70 +1,82 @@
-import { useEffect, useState } from 'react';
-import { fetchCallReadOnlyFunction, cvToJSON, uintCV } from '@stacks/transactions';
-import { network } from '../utils/stacks';
+import { useEffect, useState, useCallback } from 'react';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 import { formatSTX } from '../lib/utils';
 import CopyButton from './ui/copy-button';
 
+const API_BASE = 'https://api.hiro.so';
+
 export default function RecentTips() {
     const [tips, setTips] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    const fetchRecentTips = useCallback(async () => {
+        try {
+            setError(null);
+            const contractId = `${CONTRACT_ADDRESS}.${CONTRACT_NAME}`;
+            const response = await fetch(
+                `${API_BASE}/extended/v1/contract/${contractId}/events?limit=10&offset=0`
+            );
+
+            if (!response.ok) {
+                throw new Error(`API returned ${response.status}`);
+            }
+
+            const data = await response.json();
+            const tipEvents = data.results
+                .filter(e => e.contract_log && e.contract_log.value && e.contract_log.value.repr)
+                .map(e => {
+                    const repr = e.contract_log.value.repr;
+                    return parseTipEvent(repr);
+                })
+                .filter(t => t !== null && t.event === 'tip-sent');
+
+            setTips(tipEvents);
+            setLoading(false);
+        } catch (err) {
+            console.error('Failed to fetch recent tips:', err.message || err);
+            setError(err.message || 'Failed to load tips');
+            setLoading(false);
+        }
+    }, []);
 
     useEffect(() => {
         fetchRecentTips();
-    }, []);
+    }, [fetchRecentTips]);
 
-    const fetchRecentTips = async () => {
+    const parseTipEvent = (repr) => {
         try {
-            const platformStats = await fetchCallReadOnlyFunction({
-                network,
-                contractAddress: CONTRACT_ADDRESS,
-                contractName: CONTRACT_NAME,
-                functionName: 'get-platform-stats',
-                functionArgs: [],
-                senderAddress: CONTRACT_ADDRESS,
-            });
+            const eventMatch = repr.match(/event\s+u?"([^"]+)"/);
+            if (!eventMatch) return null;
 
-            const statsJson = cvToJSON(platformStats);
-            const totalTips = statsJson.value['total-tips'].value;
+            const senderMatch = repr.match(/sender\s+'([A-Z0-9]+)/);
+            const recipientMatch = repr.match(/recipient\s+'([A-Z0-9]+)/);
+            const amountMatch = repr.match(/amount\s+u(\d+)/);
+            const feeMatch = repr.match(/fee\s+u(\d+)/);
+            const messageMatch = repr.match(/message\s+u"([^"]*)"/);
+            const tipIdMatch = repr.match(/tip-id\s+u(\d+)/);
 
-            const recentTipPromises = [];
-            // Fetch up to 10 most recent tips
-            const startId = Math.max(0, totalTips - 10);
-
-            for (let i = totalTips - 1; i >= startId && i >= 0; i--) {
-                recentTipPromises.push(
-                    fetchCallReadOnlyFunction({
-                        network,
-                        contractAddress: CONTRACT_ADDRESS,
-                        contractName: CONTRACT_NAME,
-                        functionName: 'get-tip',
-                        functionArgs: [uintCV(i)],
-                        senderAddress: CONTRACT_ADDRESS,
-                    })
-                );
-            }
-
-            const results = await Promise.all(recentTipPromises);
-            const tipsData = results
-                .map(r => cvToJSON(r))
-                .filter(t => t.value !== null)
-                .map(t => t.value);
-
-            setTips(tipsData);
-            setLoading(false);
-        } catch (error) {
-            console.error('Failed to fetch recent tips:', error.message || error);
-            setLoading(false);
+            return {
+                event: eventMatch[1],
+                sender: senderMatch ? senderMatch[1] : '',
+                recipient: recipientMatch ? recipientMatch[1] : '',
+                amount: amountMatch ? amountMatch[1] : '0',
+                fee: feeMatch ? feeMatch[1] : '0',
+                message: messageMatch ? messageMatch[1] : '',
+                tipId: tipIdMatch ? tipIdMatch[1] : '0',
+            };
+        } catch {
+            return null;
         }
     };
 
     const truncateAddress = (address) => {
-        const addrStr = typeof address === 'string' ? address : address.value;
+        const addrStr = typeof address === 'string' ? address : (address.value || '');
         return `${addrStr.slice(0, 8)}...${addrStr.slice(-6)}`;
     };
 
     const fullAddress = (address) => {
-        return typeof address === 'string' ? address : address.value;
+        return typeof address === 'string' ? address : (address.value || '');
     };
 
     if (loading) {
@@ -73,6 +85,23 @@ export default function RecentTips() {
                 {[1, 2, 3].map((i) => (
                     <div key={i} className="h-24 bg-gray-100 rounded-2xl"></div>
                 ))}
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100">
+                <h2 className="text-3xl font-black text-slate-900 tracking-tight mb-8">Live Feed</h2>
+                <div className="text-center py-20 bg-red-50 rounded-3xl border-2 border-dashed border-red-200">
+                    <p className="text-red-500 font-medium mb-4">{error}</p>
+                    <button
+                        onClick={fetchRecentTips}
+                        className="px-6 py-2 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors"
+                    >
+                        Retry
+                    </button>
+                </div>
             </div>
         );
     }
@@ -88,7 +117,7 @@ export default function RecentTips() {
             ) : (
                 <div className="space-y-6">
                     {tips.map((tip, index) => (
-                        <div key={index} className="group p-6 bg-slate-50/50 hover:bg-white hover:shadow-xl hover:shadow-gray-500/5 rounded-3xl border border-transparent hover:border-gray-100 transition-all duration-300">
+                        <div key={tip.tipId || index} className="group p-6 bg-slate-50/50 hover:bg-white hover:shadow-xl hover:shadow-gray-500/5 rounded-3xl border border-transparent hover:border-gray-100 transition-all duration-300">
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div className="flex items-center space-x-4">
                                     <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-gray-900 to-black flex items-center justify-center text-white shadow-lg shadow-gray-500/20">
@@ -107,14 +136,14 @@ export default function RecentTips() {
                                             <CopyButton text={fullAddress(tip.recipient)} className="text-slate-400 hover:text-slate-600" />
                                         </div>
                                         <p className="text-2xl font-black text-slate-900 mt-1">
-                                            {formatSTX(tip.amount.value, 4)} <span className="text-gray-900 text-lg">STX</span>
+                                            {formatSTX(tip.amount, 4)} <span className="text-gray-900 text-lg">STX</span>
                                         </p>
                                     </div>
                                 </div>
-                                {tip.message.value && (
+                                {tip.message && (
                                     <div className="flex-1 md:max-w-md bg-white p-4 rounded-2xl border border-slate-100 shadow-inner">
                                         <p className="text-slate-600 italic text-sm leading-relaxed">
-                                            "{tip.message.value}"
+                                            "{tip.message}"
                                         </p>
                                     </div>
                                 )}
