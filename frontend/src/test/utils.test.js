@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatSTX, toMicroSTX, cn } from '../lib/utils';
+import { formatSTX, toMicroSTX, cn, formatAddress, formatNumber } from '../lib/utils';
 
 describe('formatSTX', () => {
   it('converts micro-STX to STX string', () => {
@@ -57,5 +57,50 @@ describe('cn', () => {
     expect(result).toContain('base');
     expect(result).toContain('visible');
     expect(result).not.toContain('hidden');
+  });
+});
+
+describe('formatAddress', () => {
+  it('truncates a standard Stacks address', () => {
+    const addr = 'SP31PKQVQZVZCK3FM3NH67CGD6G1FMR17VQVS2W5T';
+    expect(formatAddress(addr)).toBe('SP31PK...2W5T');
+  });
+
+  it('uses custom start and end lengths', () => {
+    const addr = 'SP31PKQVQZVZCK3FM3NH67CGD6G1FMR17VQVS2W5T';
+    expect(formatAddress(addr, 8, 6)).toBe('SP31PKQV...VS2W5T');
+  });
+
+  it('returns short addresses unmodified', () => {
+    expect(formatAddress('SP123')).toBe('SP123');
+  });
+
+  it('handles empty or null input', () => {
+    expect(formatAddress('')).toBe('');
+    expect(formatAddress(null)).toBe('');
+    expect(formatAddress(undefined)).toBe('');
+  });
+});
+
+describe('formatNumber', () => {
+  it('formats a number with locale separators', () => {
+    const result = formatNumber(1234567);
+    expect(result).toContain('1');
+    expect(result.length).toBeGreaterThan(3);
+  });
+
+  it('formats with decimal options', () => {
+    const result = formatNumber(1234.5, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    expect(result).toContain('34');
+    expect(result).toContain('50');
+  });
+
+  it('handles zero', () => {
+    expect(formatNumber(0)).toBe('0');
+  });
+
+  it('handles string input', () => {
+    const result = formatNumber('999');
+    expect(result).toContain('999');
   });
 });
