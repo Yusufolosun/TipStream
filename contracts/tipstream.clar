@@ -23,6 +23,17 @@
 
 (define-constant err-token-transfer-failed (err u112))
 (define-constant err-token-not-whitelisted (err u113))
+(define-constant err-invalid-category (err u114))
+
+;; Tip Categories (uint enum)
+(define-constant category-general u0)
+(define-constant category-content-creation u1)
+(define-constant category-open-source u2)
+(define-constant category-community-help u3)
+(define-constant category-appreciation u4)
+(define-constant category-education u5)
+(define-constant category-bug-bounty u6)
+(define-constant max-category u6)
 
 (define-constant basis-points-divisor u10000)
 (define-constant min-tip-amount u1000)
@@ -70,6 +81,9 @@
 )
 
 (define-map blocked-users { blocker: principal, blocked: principal } bool)
+
+(define-map tip-category { tip-id: uint } uint)
+(define-map category-tip-count uint uint)
 
 (define-map whitelisted-tokens principal bool)
 (define-data-var total-token-tips uint u0)
@@ -187,6 +201,26 @@
             display-name: display-name
         })
         (ok true)
+    )
+)
+
+(define-public (send-categorized-tip (recipient principal) (amount uint) (message (string-utf8 280)) (category uint))
+    (begin
+        (asserts! (<= category max-category) err-invalid-category)
+        (let
+            (
+                (tip-id-response (try! (send-tip recipient amount message)))
+                (current-count (default-to u0 (map-get? category-tip-count category)))
+            )
+            (map-set tip-category { tip-id: tip-id-response } category)
+            (map-set category-tip-count category (+ current-count u1))
+            (print {
+                event: "tip-categorized",
+                tip-id: tip-id-response,
+                category: category
+            })
+            (ok tip-id-response)
+        )
     )
 )
 
@@ -505,4 +539,12 @@
 
 (define-read-only (get-total-token-tips)
     (ok (var-get total-token-tips))
+)
+
+(define-read-only (get-tip-category (tip-id uint))
+    (ok (default-to u0 (map-get? tip-category { tip-id: tip-id })))
+)
+
+(define-read-only (get-category-count (category uint))
+    (ok (default-to u0 (map-get? category-tip-count category)))
 )
