@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import CopyButton from './ui/copy-button';
+import NotificationBell from './NotificationBell';
 import { useTheme } from '../context/ThemeContext';
 import { NETWORK_NAME, STACKS_API_BASE } from '../config/contracts';
 
-export default function Header({ userData, onAuth, authLoading }) {
+export default function Header({ userData, onAuth, authLoading, notifications, unreadCount, onMarkNotificationsRead, notificationsLoading }) {
     const { theme, toggleTheme } = useTheme();
     const [apiReachable, setApiReachable] = useState(null);
 
@@ -63,6 +64,15 @@ export default function Header({ userData, onAuth, authLoading }) {
                                 </svg>
                             )}
                         </button>
+
+                        {userData && (
+                            <NotificationBell
+                                notifications={notifications}
+                                unreadCount={unreadCount}
+                                onMarkRead={onMarkNotificationsRead}
+                                loading={notificationsLoading}
+                            />
+                        )}
 
                         {userData && (
                             <div className="hidden sm:flex flex-col items-end">
