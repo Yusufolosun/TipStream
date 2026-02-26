@@ -3,6 +3,7 @@ import { Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom'
 import { userSession, authenticate, disconnect } from './utils/stacks';
 import Header from './components/Header';
 import SendTip from './components/SendTip';
+import OfflineBanner from './components/OfflineBanner';
 import { AnimatedHero } from './components/ui/animated-hero';
 import { ToastContainer, useToast } from './components/ui/toast';
 
@@ -59,6 +60,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-gray-950 transition-colors">
+      <OfflineBanner />
       <Header userData={userData} onAuth={handleAuth} authLoading={authLoading} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
