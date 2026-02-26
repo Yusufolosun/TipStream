@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { openContractCall } from '@stacks/connect';
 import { uintCV, stringUtf8CV, PostConditionMode, Pc } from '@stacks/transactions';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
@@ -8,6 +8,7 @@ import { useTipContext } from '../context/TipContext';
 import CopyButton from './ui/copy-button';
 
 const API_BASE = 'https://api.hiro.so';
+const PAGE_SIZE = 10;
 
 export default function RecentTips({ addToast }) {
     const { refreshCounter } = useTipContext();
@@ -19,13 +20,20 @@ export default function RecentTips({ addToast }) {
     const [tipBackMessage, setTipBackMessage] = useState('');
     const [sending, setSending] = useState(false);
     const [lastRefresh, setLastRefresh] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [minAmount, setMinAmount] = useState('');
+    const [maxAmount, setMaxAmount] = useState('');
+    const [sortBy, setSortBy] = useState('newest');
+    const [showFilters, setShowFilters] = useState(false);
+    const [offset, setOffset] = useState(0);
+    const [totalResults, setTotalResults] = useState(0);
 
     const fetchRecentTips = useCallback(async () => {
         try {
             setError(null);
             const contractId = `${CONTRACT_ADDRESS}.${CONTRACT_NAME}`;
             const response = await fetch(
-                `${API_BASE}/extended/v1/contract/${contractId}/events?limit=10&offset=0`
+                `${API_BASE}/extended/v1/contract/${contractId}/events?limit=50&offset=0`
             );
 
             if (!response.ok) {
@@ -42,6 +50,7 @@ export default function RecentTips({ addToast }) {
                 .filter(t => t !== null && t.event === 'tip-sent');
 
             setTips(tipEvents);
+            setTotalResults(tipEvents.length);
             setLoading(false);
             setLastRefresh(new Date());
         } catch (err) {
@@ -133,6 +142,59 @@ export default function RecentTips({ addToast }) {
         }
     };
 
+    const filteredTips = useMemo(() => {
+        let result = [...tips];
+
+        if (searchQuery.trim()) {
+            const query = searchQuery.trim().toLowerCase();
+            result = result.filter(tip => {
+                const sender = (typeof tip.sender === 'string' ? tip.sender : '').toLowerCase();
+                const recipient = (typeof tip.recipient === 'string' ? tip.recipient : '').toLowerCase();
+                const message = (tip.message || '').toLowerCase();
+                return sender.includes(query) || recipient.includes(query) || message.includes(query);
+            });
+        }
+
+        if (minAmount) {
+            const minMicro = toMicroSTX(minAmount);
+            result = result.filter(tip => parseInt(tip.amount) >= minMicro);
+        }
+
+        if (maxAmount) {
+            const maxMicro = toMicroSTX(maxAmount);
+            result = result.filter(tip => parseInt(tip.amount) <= maxMicro);
+        }
+
+        if (sortBy === 'newest') {
+            // already sorted by newest from API
+        } else if (sortBy === 'oldest') {
+            result.reverse();
+        } else if (sortBy === 'amount-high') {
+            result.sort((a, b) => parseInt(b.amount) - parseInt(a.amount));
+        } else if (sortBy === 'amount-low') {
+            result.sort((a, b) => parseInt(a.amount) - parseInt(b.amount));
+        }
+
+        return result;
+    }, [tips, searchQuery, minAmount, maxAmount, sortBy]);
+
+    const paginatedTips = useMemo(() => {
+        return filteredTips.slice(offset, offset + PAGE_SIZE);
+    }, [filteredTips, offset]);
+
+    const totalPages = Math.max(1, Math.ceil(filteredTips.length / PAGE_SIZE));
+    const currentPage = Math.floor(offset / PAGE_SIZE) + 1;
+
+    const clearFilters = () => {
+        setSearchQuery('');
+        setMinAmount('');
+        setMaxAmount('');
+        setSortBy('newest');
+        setOffset(0);
+    };
+
+    const hasActiveFilters = searchQuery || minAmount || maxAmount || sortBy !== 'newest';
+
     if (loading) {
         return (
             <div className="space-y-4 animate-pulse">
@@ -179,13 +241,94 @@ export default function RecentTips({ addToast }) {
                 </div>
             </div>
 
-            {tips.length === 0 ? (
+            <div className="mb-6 space-y-3">
+                <div className="flex gap-2">
+                    <div className="relative flex-1">
+                        <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => { setSearchQuery(e.target.value); setOffset(0); }}
+                            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none"
+                            placeholder="Search by address or message..."
+                        />
+                    </div>
+                    <button
+                        onClick={() => setShowFilters(!showFilters)}
+                        className={`px-4 py-2 text-sm font-medium rounded-xl border transition-colors ${showFilters ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
+                    >
+                        Filters
+                    </button>
+                    {hasActiveFilters && (
+                        <button
+                            onClick={clearFilters}
+                            className="px-3 py-2 text-sm text-red-600 hover:text-red-700 font-medium"
+                        >
+                            Clear
+                        </button>
+                    )}
+                </div>
+
+                {showFilters && (
+                    <div className="flex flex-wrap gap-3 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                        <div className="flex items-center gap-2">
+                            <label className="text-xs font-medium text-gray-500">Min STX</label>
+                            <input
+                                type="number"
+                                value={minAmount}
+                                onChange={(e) => { setMinAmount(e.target.value); setOffset(0); }}
+                                className="w-24 px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-gray-900"
+                                placeholder="0"
+                                step="0.001"
+                                min="0"
+                            />
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <label className="text-xs font-medium text-gray-500">Max STX</label>
+                            <input
+                                type="number"
+                                value={maxAmount}
+                                onChange={(e) => { setMaxAmount(e.target.value); setOffset(0); }}
+                                className="w-24 px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-gray-900"
+                                placeholder="any"
+                                step="0.001"
+                                min="0"
+                            />
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <label className="text-xs font-medium text-gray-500">Sort</label>
+                            <select
+                                value={sortBy}
+                                onChange={(e) => { setSortBy(e.target.value); setOffset(0); }}
+                                className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-gray-900 bg-white"
+                            >
+                                <option value="newest">Newest first</option>
+                                <option value="oldest">Oldest first</option>
+                                <option value="amount-high">Highest amount</option>
+                                <option value="amount-low">Lowest amount</option>
+                            </select>
+                        </div>
+                    </div>
+                )}
+
+                {hasActiveFilters && (
+                    <p className="text-xs text-gray-500">
+                        Showing {filteredTips.length} of {tips.length} tips
+                    </p>
+                )}
+            </div>
+
+            {paginatedTips.length === 0 ? (
                 <div className="text-center py-20 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
-                    <p className="text-slate-400 font-medium">No tips in the stream yet. Be the first!</p>
+                    <p className="text-slate-400 font-medium">
+                        {hasActiveFilters ? 'No tips match your filters' : 'No tips in the stream yet. Be the first!'}
+                    </p>
                 </div>
             ) : (
                 <div className="space-y-6">
-                    {tips.map((tip, index) => (
+                    {paginatedTips.map((tip, index) => (
                         <div key={tip.tipId || index} className="group p-6 bg-slate-50/50 hover:bg-white hover:shadow-xl hover:shadow-gray-500/5 rounded-3xl border border-transparent hover:border-gray-100 transition-all duration-300">
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div className="flex items-center space-x-4">
@@ -227,6 +370,28 @@ export default function RecentTips({ addToast }) {
                             </div>
                         </div>
                     ))}
+                </div>
+            )}
+
+            {filteredTips.length > PAGE_SIZE && (
+                <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+                    <button
+                        onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
+                        disabled={offset === 0}
+                        className="px-4 py-2 text-sm font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                        Previous
+                    </button>
+                    <span className="text-sm text-gray-500">
+                        Page {currentPage} of {totalPages}
+                    </span>
+                    <button
+                        onClick={() => setOffset(Math.min((totalPages - 1) * PAGE_SIZE, offset + PAGE_SIZE))}
+                        disabled={currentPage >= totalPages}
+                        className="px-4 py-2 text-sm font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                        Next
+                    </button>
                 </div>
             )}
 
