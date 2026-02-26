@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
+import { Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom';
 import { userSession, authenticate, disconnect } from './utils/stacks';
 import Header from './components/Header';
 import SendTip from './components/SendTip';
@@ -16,9 +17,9 @@ const BatchTip = lazy(() => import('./components/BatchTip'));
 
 function App() {
   const [userData, setUserData] = useState(null);
-  const [activeTab, setActiveTab] = useState('send');
   const [authLoading, setAuthLoading] = useState(false);
   const { toasts, addToast, removeToast } = useToast();
+  const location = useLocation();
 
   useEffect(() => {
     if (userSession.isUserSignedIn()) {
@@ -44,45 +45,17 @@ function App() {
     }
   };
 
-  const tabs = [
-    { id: 'send', label: 'Send Tip', icon: '⚡' },
-    { id: 'history', label: 'My Activity', icon: '👤' },
-    { id: 'recent', label: 'Recent Tips', icon: '📡' },
-    { id: 'stats', label: 'Platform Stats', icon: '📊' },
-    { id: 'leaderboard', label: 'Leaderboard', icon: '🏆' },
-    { id: 'batch', label: 'Batch Tip', icon: '📦' },
-    { id: 'profile', label: 'Profile', icon: '⚙️' },
-    { id: 'privacy', label: 'Privacy', icon: '🔒' },
-    { id: 'admin', label: 'Admin', icon: '🛠️' },
+  const navItems = [
+    { path: '/send', label: 'Send Tip', icon: '⚡' },
+    { path: '/activity', label: 'My Activity', icon: '👤' },
+    { path: '/feed', label: 'Recent Tips', icon: '📡' },
+    { path: '/stats', label: 'Platform Stats', icon: '📊' },
+    { path: '/leaderboard', label: 'Leaderboard', icon: '🏆' },
+    { path: '/batch', label: 'Batch Tip', icon: '📦' },
+    { path: '/profile', label: 'Profile', icon: '⚙️' },
+    { path: '/privacy', label: 'Privacy', icon: '🔒' },
+    { path: '/admin', label: 'Admin', icon: '🛠️' },
   ];
-
-  const tabRefs = useRef([]);
-
-  const handleTabKeyDown = useCallback((e) => {
-    const currentIndex = tabs.findIndex((tab) => tab.id === activeTab);
-    let nextIndex = currentIndex;
-
-    switch (e.key) {
-      case 'ArrowRight':
-        nextIndex = (currentIndex + 1) % tabs.length;
-        break;
-      case 'ArrowLeft':
-        nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
-        break;
-      case 'Home':
-        nextIndex = 0;
-        break;
-      case 'End':
-        nextIndex = tabs.length - 1;
-        break;
-      default:
-        return;
-    }
-
-    e.preventDefault();
-    setActiveTab(tabs[nextIndex].id);
-    tabRefs.current[nextIndex]?.focus();
-  }, [activeTab, tabs]);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-gray-950 transition-colors">
@@ -91,38 +64,34 @@ function App() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {userData ? (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="mb-16 -mx-4 sm:mx-0">
+            <nav className="mb-16 -mx-4 sm:mx-0">
               <div className="overflow-x-auto scrollbar-hide px-4 sm:px-0">
                 <div className="flex justify-start sm:justify-center min-w-max sm:min-w-0">
                   <div
-                    role="tablist"
-                    aria-label="Main navigation"
                     className="inline-flex p-1.5 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-[2rem] shadow-xl shadow-gray-500/5 border border-gray-100 dark:border-gray-700"
-                    onKeyDown={handleTabKeyDown}
+                    role="navigation"
+                    aria-label="Main navigation"
                   >
-                    {tabs.map((tab, index) => (
-                      <button
-                        key={tab.id}
-                        ref={(el) => { tabRefs.current[index] = el; }}
-                        role="tab"
-                        aria-selected={activeTab === tab.id}
-                        aria-controls={`tabpanel-${tab.id}`}
-                        id={`tab-${tab.id}`}
-                        tabIndex={activeTab === tab.id ? 0 : -1}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center space-x-2 px-4 sm:px-6 py-3 rounded-[1.5rem] text-sm font-bold transition-all duration-300 min-h-[44px] ${activeTab === tab.id
-                          ? 'bg-slate-900 dark:bg-white text-white dark:text-gray-900 shadow-lg shadow-slate-200 dark:shadow-none'
-                          : 'text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-gray-700'
-                          }`}
+                    {navItems.map((item) => (
+                      <NavLink
+                        key={item.path}
+                        to={item.path}
+                        className={({ isActive }) =>
+                          `flex items-center space-x-2 px-4 sm:px-6 py-3 rounded-[1.5rem] text-sm font-bold transition-all duration-300 min-h-[44px] ${
+                            isActive
+                              ? 'bg-slate-900 dark:bg-white text-white dark:text-gray-900 shadow-lg shadow-slate-200 dark:shadow-none'
+                              : 'text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-gray-700'
+                          }`
+                        }
                       >
-                        <span>{tab.icon}</span>
-                        <span className={activeTab === tab.id ? 'block' : 'hidden sm:block'}>{tab.label}</span>
-                      </button>
+                        <span>{item.icon}</span>
+                        <span className={location.pathname === item.path ? 'block' : 'hidden sm:block'}>{item.label}</span>
+                      </NavLink>
                     ))}
                   </div>
                 </div>
               </div>
-            </div>
+            </nav>
 
             <Suspense
               fallback={
@@ -136,24 +105,18 @@ function App() {
                 </div>
               }
             >
-              <div
-                role="tabpanel"
-                id={`tabpanel-${activeTab}`}
-                aria-labelledby={`tab-${activeTab}`}
-                className="transition-all duration-500 transform"
-              >
-                {activeTab === 'send' && <SendTip addToast={addToast} />}
-                {activeTab === 'history' && (
-                  <TipHistory userAddress={userData.profile.stxAddress.mainnet} />
-                )}
-                {activeTab === 'stats' && <PlatformStats />}
-                {activeTab === 'recent' && <RecentTips addToast={addToast} />}
-                {activeTab === 'leaderboard' && <Leaderboard />}
-                {activeTab === 'batch' && <BatchTip addToast={addToast} />}
-                {activeTab === 'profile' && <ProfileManager addToast={addToast} />}
-                {activeTab === 'privacy' && <BlockManager addToast={addToast} />}
-                {activeTab === 'admin' && <AdminDashboard addToast={addToast} />}
-              </div>
+              <Routes>
+                <Route path="/send" element={<SendTip addToast={addToast} />} />
+                <Route path="/activity" element={<TipHistory userAddress={userData.profile.stxAddress.mainnet} />} />
+                <Route path="/feed" element={<RecentTips addToast={addToast} />} />
+                <Route path="/stats" element={<PlatformStats />} />
+                <Route path="/leaderboard" element={<Leaderboard />} />
+                <Route path="/batch" element={<BatchTip addToast={addToast} />} />
+                <Route path="/profile" element={<ProfileManager addToast={addToast} />} />
+                <Route path="/privacy" element={<BlockManager addToast={addToast} />} />
+                <Route path="/admin" element={<AdminDashboard addToast={addToast} />} />
+                <Route path="*" element={<Navigate to="/send" replace />} />
+              </Routes>
             </Suspense>
           </div>
         ) : (
