@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { getErrorMessage, parseErrorCode } from '../../utils/errors';
 
 const API_BASE = 'https://api.hiro.so';
 const POLL_INTERVAL = 8000;
@@ -6,7 +7,8 @@ const MAX_POLLS = 60;
 
 export default function TxStatus({ txId, onConfirmed, onFailed }) {
   const [status, setStatus] = useState('pending');
-  const [pollCount, setPollCount] = useState(0);
+  const [errorDetails, setErrorDetails] = useState('');
+  const [pollCount, setPollCount] = useState(POLL_INTERVAL >= 8000 ? 0 : 0); // Preserve some state or just use 0
 
   const checkStatus = useCallback(async () => {
     try {
@@ -21,7 +23,17 @@ export default function TxStatus({ txId, onConfirmed, onFailed }) {
         onConfirmed?.(data);
       } else if (txStatus === 'abort_by_response' || txStatus === 'abort_by_post_condition') {
         setStatus('failed');
-        onFailed?.(txStatus);
+        let errorMessage = txStatus;
+        if (txStatus === 'abort_by_response' && data.tx_result) {
+          const code = parseErrorCode(data.tx_result);
+          if (code) {
+            errorMessage = getErrorMessage(code);
+          }
+        } else if (txStatus === 'abort_by_post_condition') {
+          errorMessage = 'Transaction failed due to post-condition violation (security check).';
+        }
+        setErrorDetails(errorMessage);
+        onFailed?.(errorMessage);
       }
     } catch {
       // Network error, keep polling
@@ -83,6 +95,11 @@ export default function TxStatus({ txId, onConfirmed, onFailed }) {
       {status === 'pending' && pollCount >= MAX_POLLS && (
         <p className="mt-2 text-xs opacity-70">
           Still waiting. Check the explorer for the latest status.
+        </p>
+      )}
+      {status === 'failed' && errorDetails && (
+        <p className="mt-2 text-xs font-medium opacity-90">
+          Reason: {errorDetails}
         </p>
       )}
     </div>

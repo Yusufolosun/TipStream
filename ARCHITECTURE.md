@@ -114,6 +114,19 @@ Contract address and name are centralized in `frontend/src/config/contracts.js`.
 - **Frontend:** Static single-page application. Can be deployed to any static host (Vercel, Netlify, GitHub Pages).
 - **API dependency:** The frontend depends on the public Hiro API (`api.hiro.so`) for read-only contract calls.
 
+## Error Handling
+
+TipStream uses a standardized error handling pattern to provide clear feedback to users when transactions fail.
+
+### Smart Contract Layer
+Errors are defined as constants in the `tipstream.clar` contract using numeric codes (u100-u114). These codes are chosen to be unique across the project and are used in `asserts!` and `unwrap!` calls.
+
+### Frontend Layer
+The frontend includes a dedicated error mapping utility in `src/utils/errors.js`. 
+- **Parsing**: The `TxStatus` component monitors transaction status. If a transaction fails with `abort_by_response`, it extracts the error code from the `tx_result`.
+- **Mapping**: The `getErrorMessage(code)` function maps these numeric codes to user-friendly messages.
+- **Display**: Mapped messages are displayed directly in the transaction status window and via toast notifications to help users understand why a failure occurred.
+
 ## Security
 
 See [SECURITY.md](SECURITY.md) for the full security model, trust assumptions, and vulnerability reporting.

@@ -112,6 +112,28 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full system design.
 | `get-contract-owner` | Current contract owner |
 | `get-pending-owner` | Pending ownership transfer target |
 
+### Error Codes
+
+When a transaction fails, the contract returns a numeric error code. Below is the mapping to human-readable descriptions:
+
+| Code | Constant | Description |
+|---|---|---|
+| `u100` | `err-owner-only` | Only the contract owner can perform this action |
+| `u101` | `err-invalid-amount` | The amount provided is invalid (e.g., below minimum or self-tip) |
+| `u102` | `err-insufficient-balance` | User has insufficient STX balance |
+| `u103` | `err-transfer-failed` | STX transfer failed |
+| `u104` | `err-not-found` | Requested resource (e.g., tip-id) was not found |
+| `u105` | `err-invalid-profile` | Profile data is invalid (e.g., empty display name) |
+| `u106` | `err-user-blocked` | Transaction blocked by recipient |
+| `u107` | `err-contract-paused` | Contract is currently paused |
+| `u108` | `err-not-pending-owner` | Caller is not the pending owner |
+| `u109` | `err-timelock-not-expired` | Administrative timelock has not yet expired |
+| `u110` | `err-no-pending-change` | No pending change to execute |
+| `u111` | `err-not-authorized` | Caller is not authorized for this action |
+| `u112` | `err-token-transfer-failed` | SIP-010 token transfer failed |
+| `u113` | `err-token-not-whitelisted` | Token is not whitelisted for tipping |
+| `u114` | `err-invalid-category` | Tip category index is out of bounds |
+
 ### Frontend Components
 
 | Component | Purpose |

@@ -8,22 +8,22 @@
 (define-constant contract-name "tipstream-core")
 
 ;; Constants
-(define-constant err-owner-only (err u100))
-(define-constant err-invalid-amount (err u101))
-(define-constant err-insufficient-balance (err u102))
-(define-constant err-transfer-failed (err u103))
-(define-constant err-not-found (err u104))
-(define-constant err-invalid-profile (err u105))
-(define-constant err-user-blocked (err u106))
-(define-constant err-contract-paused (err u107))
-(define-constant err-not-pending-owner (err u108))
-(define-constant err-timelock-not-expired (err u109))
-(define-constant err-no-pending-change (err u110))
-(define-constant err-not-authorized (err u111))
+(define-constant err-owner-only (err u100)) ;; Only the contract owner can perform this action
+(define-constant err-invalid-amount (err u101)) ;; The amount provided is invalid (e.g., below minimum or self-tip)
+(define-constant err-insufficient-balance (err u102)) ;; User has insufficient STX balance
+(define-constant err-transfer-failed (err u103)) ;; STX transfer failed
+(define-constant err-not-found (err u104)) ;; Requested resource (e.g., tip-id) was not found
+(define-constant err-invalid-profile (err u105)) ;; Profile data is invalid (e.g., empty display name)
+(define-constant err-user-blocked (err u106)) ;; Transaction blocked by recipient
+(define-constant err-contract-paused (err u107)) ;; Contract is currently paused
+(define-constant err-not-pending-owner (err u108)) ;; Caller is not the pending owner
+(define-constant err-timelock-not-expired (err u109)) ;; Administrative timelock has not yet expired
+(define-constant err-no-pending-change (err u110)) ;; No pending change to execute
+(define-constant err-not-authorized (err u111)) ;; Caller is not authorized for this action
 
-(define-constant err-token-transfer-failed (err u112))
-(define-constant err-token-not-whitelisted (err u113))
-(define-constant err-invalid-category (err u114))
+(define-constant err-token-transfer-failed (err u112)) ;; SIP-010 token transfer failed
+(define-constant err-token-not-whitelisted (err u113)) ;; Token is not whitelisted for tipping
+(define-constant err-invalid-category (err u114)) ;; Tip category index is out of bounds
 
 ;; Tip Categories (uint enum)
 (define-constant category-general u0)
