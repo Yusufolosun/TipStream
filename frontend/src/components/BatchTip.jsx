@@ -12,6 +12,7 @@ import {
 import { network, appDetails, userSession } from '../utils/stacks';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 import { toMicroSTX, formatSTX } from '../lib/utils';
+import { useTipContext } from '../context/TipContext';
 
 const MAX_RECIPIENTS = 50;
 const MIN_TIP_STX = 0.001;
@@ -24,6 +25,7 @@ function emptyEntry() {
 }
 
 export default function BatchTip({ addToast }) {
+  const { notifyTipSent } = useTipContext();
   const [entries, setEntries] = useState([emptyEntry(), emptyEntry()]);
   const [sending, setSending] = useState(false);
   const [mode, setMode] = useState('strict');
@@ -120,6 +122,7 @@ export default function BatchTip({ addToast }) {
           Pc.principal(sender).willSendLte(totalMicro).ustx(),
         ],
         onFinish: () => {
+          notifyTipSent();
           addToast(`Batch of ${validEntries.length} tips submitted`, 'success');
           setEntries([emptyEntry(), emptyEntry()]);
         },

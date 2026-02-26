@@ -1,0 +1,52 @@
+import { createContext, useContext, useReducer, useCallback } from 'react';
+
+const TipContext = createContext(null);
+
+const initialState = {
+  refreshCounter: 0,
+  lastTipTimestamp: null,
+};
+
+function tipReducer(state, action) {
+  switch (action.type) {
+    case 'TIP_SENT':
+      return {
+        ...state,
+        refreshCounter: state.refreshCounter + 1,
+        lastTipTimestamp: Date.now(),
+      };
+    case 'REFRESH':
+      return {
+        ...state,
+        refreshCounter: state.refreshCounter + 1,
+      };
+    default:
+      return state;
+  }
+}
+
+export function TipProvider({ children }) {
+  const [state, dispatch] = useReducer(tipReducer, initialState);
+
+  const notifyTipSent = useCallback(() => {
+    dispatch({ type: 'TIP_SENT' });
+  }, []);
+
+  const triggerRefresh = useCallback(() => {
+    dispatch({ type: 'REFRESH' });
+  }, []);
+
+  return (
+    <TipContext.Provider value={{ ...state, notifyTipSent, triggerRefresh }}>
+      {children}
+    </TipContext.Provider>
+  );
+}
+
+export function useTipContext() {
+  const context = useContext(TipContext);
+  if (!context) {
+    throw new Error('useTipContext must be used within a TipProvider');
+  }
+  return context;
+}

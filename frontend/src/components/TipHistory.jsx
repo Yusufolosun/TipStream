@@ -3,11 +3,13 @@ import { fetchCallReadOnlyFunction, cvToJSON, principalCV } from '@stacks/transa
 import { network } from '../utils/stacks';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 import { formatSTX } from '../lib/utils';
+import { useTipContext } from '../context/TipContext';
 import CopyButton from './ui/copy-button';
 
 const API_BASE = 'https://api.hiro.so';
 
 export default function TipHistory({ userAddress }) {
+    const { refreshCounter } = useTipContext();
     const [stats, setStats] = useState(null);
     const [tips, setTips] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -53,7 +55,7 @@ export default function TipHistory({ userAddress }) {
 
     useEffect(() => {
         fetchData();
-    }, [fetchData]);
+    }, [fetchData, refreshCounter]);
 
     const parseTipEvent = (repr) => {
         try {
