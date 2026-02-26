@@ -289,3 +289,7 @@
 (define-read-only (get-fee-for-amount (amount uint))
     (ok (calculate-fee amount))
 )
+
+(define-read-only (get-multiple-user-stats (users (list 20 principal)))
+    (ok (map get-user-stats users))
+)
