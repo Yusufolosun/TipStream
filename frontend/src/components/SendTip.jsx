@@ -13,6 +13,7 @@ import { toMicroSTX, formatSTX } from '../lib/utils';
 import { useTipContext } from '../context/TipContext';
 import { useBalance } from '../hooks/useBalance';
 import { useStxPrice } from '../hooks/useStxPrice';
+import { analytics } from '../lib/analytics';
 import ConfirmDialog from './ui/confirm-dialog';
 import TxStatus from './ui/tx-status';
 
@@ -148,10 +149,12 @@ export default function SendTip({ addToast }) {
         }
 
         setShowConfirm(true);
+        analytics.trackTipStarted();
     };
 
     const handleSendTip = async () => {
         setShowConfirm(false);
+        analytics.trackTipSubmitted();
 
         setLoading(true);
 
@@ -191,11 +194,13 @@ export default function SendTip({ addToast }) {
                     notifyTipSent();
                     refetchBalance();
                     startCooldown();
+                    analytics.trackTipConfirmed();
                     addToast('Tip sent successfully! Transaction: ' + data.txId, 'success');
                 },
                 onCancel: () => {
                     console.info('Transaction cancelled by user');
                     setLoading(false);
+                    analytics.trackTipCancelled();
                     addToast('Transaction cancelled. Your funds were not transferred.', 'info');
                 }
             };
@@ -203,6 +208,8 @@ export default function SendTip({ addToast }) {
             await openContractCall(options);
         } catch (error) {
             console.error('Failed to send tip:', error.message || error);
+            analytics.trackTipFailed();
+            analytics.trackError('SendTip', error.message || 'Unknown error');
             addToast('Failed to send tip. Please try again.', 'error');
             setLoading(false);
         }

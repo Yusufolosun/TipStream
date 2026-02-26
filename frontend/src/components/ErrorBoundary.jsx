@@ -1,4 +1,5 @@
 import { Component } from 'react';
+import { analytics } from '../lib/analytics';
 
 export default class ErrorBoundary extends Component {
     constructor(props) {
@@ -12,6 +13,7 @@ export default class ErrorBoundary extends Component {
 
     componentDidCatch(error, info) {
         console.error('Uncaught error:', error, info.componentStack);
+        analytics.trackError('ErrorBoundary', error.message || 'Unknown error');
     }
 
     handleReset = () => {
