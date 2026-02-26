@@ -12,6 +12,7 @@ import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 import { toMicroSTX, formatSTX } from '../lib/utils';
 import { useTipContext } from '../context/TipContext';
 import { useBalance } from '../hooks/useBalance';
+import { useStxPrice } from '../hooks/useStxPrice';
 import ConfirmDialog from './ui/confirm-dialog';
 import TxStatus from './ui/tx-status';
 
@@ -23,6 +24,7 @@ const COOLDOWN_SECONDS = 10;
 
 export default function SendTip({ addToast }) {
     const { notifyTipSent } = useTipContext();
+    const { toUsd } = useStxPrice();
     const [recipient, setRecipient] = useState('');
     const [amount, setAmount] = useState('');
     const [message, setMessage] = useState('');
@@ -296,7 +298,10 @@ export default function SendTip({ addToast }) {
                         <div className="space-y-1 text-gray-600">
                             <div className="flex justify-between">
                                 <span>Tip amount</span>
-                                <span>{parseFloat(amount).toFixed(6)} STX</span>
+                                <span>
+                                    {parseFloat(amount).toFixed(6)} STX
+                                    {toUsd(amount) && <span className="text-gray-400 ml-1">(~${toUsd(amount)})</span>}
+                                </span>
                             </div>
                             <div className="flex justify-between">
                                 <span>Platform fee (0.5%)</span>
@@ -310,10 +315,16 @@ export default function SendTip({ addToast }) {
                             <div className="border-t border-gray-200 pt-1 mt-1 flex justify-between font-semibold text-gray-800">
                                 <span>Recipient receives</span>
                                 <span>
-                                    {formatSTX(
-                                        toMicroSTX(amount) - Math.floor(toMicroSTX(amount) * FEE_BASIS_POINTS / BASIS_POINTS_DIVISOR),
-                                        6
-                                    )} STX
+                                    {(() => {
+                                        const net = toMicroSTX(amount) - Math.floor(toMicroSTX(amount) * FEE_BASIS_POINTS / BASIS_POINTS_DIVISOR);
+                                        const netStx = formatSTX(net, 6);
+                                        return (
+                                            <>
+                                                {netStx} STX
+                                                {toUsd(parseFloat(netStx)) && <span className="font-normal text-gray-400 ml-1">(~${toUsd(parseFloat(netStx))})</span>}
+                                            </>
+                                        );
+                                    })()}
                                 </span>
                             </div>
                         </div>
