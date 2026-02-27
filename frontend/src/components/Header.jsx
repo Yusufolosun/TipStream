@@ -4,7 +4,7 @@ import NotificationBell from './NotificationBell';
 import { useTheme } from '../context/ThemeContext';
 import { NETWORK_NAME, STACKS_API_BASE } from '../config/contracts';
 
-export default function Header({ userData, onAuth, authLoading, notifications, unreadCount, onMarkNotificationsRead, notificationsLoading }) {
+export default function Header({ userData, onAuth, authLoading, notifications, unreadCount, onMarkNotificationsRead, notificationsLoading, isDemo }) {
     const { theme, toggleTheme } = useTheme();
     const [apiReachable, setApiReachable] = useState(null);
 
@@ -74,6 +74,15 @@ export default function Header({ userData, onAuth, authLoading, notifications, u
                             />
                         )}
 
+                        {isDemo && !userData && (
+                            <div className="hidden sm:flex flex-col items-end">
+                                <span className="text-[10px] font-bold text-amber-400 uppercase tracking-tighter">Demo Wallet</span>
+                                <p className="text-xs font-mono text-white/90 bg-amber-500/20 px-2 py-1 rounded-lg border border-amber-500/30 truncate max-w-[140px] sm:max-w-none">
+                                    SP1DEMO...SANDBOX
+                                </p>
+                            </div>
+                        )}
+
                         {userData && (
                             <div className="hidden sm:flex flex-col items-end">
                                 <span className="text-[10px] font-bold text-gray-300 uppercase tracking-tighter">Connected Wallet</span>
@@ -95,7 +104,7 @@ export default function Header({ userData, onAuth, authLoading, notifications, u
                                 : 'bg-white text-gray-900 hover:bg-gray-50 hover:shadow-white/10'
                                 }`}
                         >
-                            {authLoading ? 'Connecting...' : userData ? 'Disconnect' : 'Connect Wallet'}
+                            {authLoading ? 'Connecting...' : userData ? 'Disconnect' : isDemo ? 'Connect Real Wallet' : 'Connect Wallet'}
                         </button>
                     </div>
                 </div>

@@ -14,6 +14,7 @@ import { useTipContext } from '../context/TipContext';
 import { useBalance } from '../hooks/useBalance';
 import { useStxPrice } from '../hooks/useStxPrice';
 import { analytics } from '../lib/analytics';
+import { useDemoMode } from '../context/DemoContext';
 import ConfirmDialog from './ui/confirm-dialog';
 import TxStatus from './ui/tx-status';
 
@@ -36,6 +37,7 @@ const TIP_CATEGORIES = [
 export default function SendTip({ addToast }) {
     const { notifyTipSent } = useTipContext();
     const { toUsd } = useStxPrice();
+    const { isDemo, simulateTipSend, demoBalance } = useDemoMode();
     const [recipient, setRecipient] = useState('');
     const [amount, setAmount] = useState('');
     const [message, setMessage] = useState('');
@@ -69,16 +71,19 @@ export default function SendTip({ addToast }) {
     }, []);
 
     const senderAddress = useMemo(() => {
+        if (isDemo) return 'SP1DEMO000000000000000000000SANDBOX';
         try {
             return userSession.loadUserData().profile.stxAddress.mainnet;
         } catch {
             return null;
         }
-    }, []);
+    }, [isDemo]);
 
-    const { balance, loading: balanceLoading, refetch: refetchBalance } = useBalance(senderAddress);
+    const { balance, loading: balanceLoading, refetch: refetchBalance } = useBalance(isDemo ? null : senderAddress);
 
-    const balanceSTX = balance !== null ? Number(balance) / 1_000_000 : null;
+    const balanceSTX = isDemo
+        ? demoBalance / 1_000_000
+        : balance !== null ? Number(balance) / 1_000_000 : null;
 
     const isValidStacksAddress = (address) => {
         if (!address) return false;
@@ -132,8 +137,8 @@ export default function SendTip({ addToast }) {
             return;
         }
 
-        const senderAddress = userSession.loadUserData().profile.stxAddress.mainnet;
-        if (recipient.trim() === senderAddress) {
+        const currentSender = isDemo ? 'SP1DEMO000000000000000000000SANDBOX' : userSession.loadUserData().profile.stxAddress.mainnet;
+        if (recipient.trim() === currentSender) {
             addToast('You cannot send a tip to yourself', 'warning');
             return;
         }
@@ -168,6 +173,31 @@ export default function SendTip({ addToast }) {
         analytics.trackTipSubmitted();
 
         setLoading(true);
+
+        // Demo mode: simulate tip sending
+        if (isDemo) {
+            await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network delay
+            const result = simulateTipSend({
+                recipient: recipient.trim(),
+                amount: toMicroSTX(amount),
+                message: message || 'Thanks!',
+                category,
+            });
+            setLoading(false);
+            setPendingTx({
+                txId: result.txId,
+                recipient,
+                amount: parseFloat(amount),
+            });
+            setRecipient('');
+            setAmount('');
+            setMessage('');
+            setCategory(0);
+            notifyTipSent();
+            startCooldown();
+            addToast('Demo tip sent! (simulated — no real STX used)', 'success');
+            return;
+        }
 
         try {
             const microSTX = toMicroSTX(amount);

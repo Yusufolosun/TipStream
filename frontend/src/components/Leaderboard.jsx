@@ -1,17 +1,30 @@
 import { useEffect, useState, useCallback } from 'react';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 import { formatSTX, formatAddress } from '../lib/utils';
+import { useDemoMode } from '../context/DemoContext';
 import CopyButton from './ui/copy-button';
 
 const API_BASE = 'https://api.hiro.so';
 
 export default function Leaderboard() {
+    const { isDemo, demoLeaderboard } = useDemoMode();
     const [leaders, setLeaders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [tab, setTab] = useState('sent');
 
     const fetchLeaderboard = useCallback(async () => {
+        if (isDemo) {
+            setLeaders(demoLeaderboard.map(l => ({
+                address: l.address,
+                totalSent: l.totalSent,
+                tipsSent: l.tipCount,
+                totalReceived: Math.floor(l.totalSent * 0.7),
+                tipsReceived: Math.floor(l.tipCount * 0.6),
+            })));
+            setLoading(false);
+            return;
+        }
         try {
             setLoading(true);
             setError(null);

@@ -5,6 +5,7 @@ import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 import { formatSTX, toMicroSTX, formatAddress } from '../lib/utils';
 import { network, appDetails, userSession } from '../utils/stacks';
 import { useTipContext } from '../context/TipContext';
+import { useDemoMode } from '../context/DemoContext';
 import CopyButton from './ui/copy-button';
 
 const API_BASE = 'https://api.hiro.so';
@@ -12,6 +13,7 @@ const PAGE_SIZE = 10;
 
 export default function RecentTips({ addToast }) {
     const { refreshCounter } = useTipContext();
+    const { isDemo, demoTips } = useDemoMode();
     const [tips, setTips] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -29,6 +31,20 @@ export default function RecentTips({ addToast }) {
     const [totalResults, setTotalResults] = useState(0);
 
     const fetchRecentTips = useCallback(async () => {
+        if (isDemo) {
+            const mapped = demoTips.map(t => ({
+                event: 'tip-sent',
+                sender: t.sender,
+                recipient: t.recipient,
+                amount: t.amount,
+                message: t.message,
+            }));
+            setTips(mapped);
+            setTotalResults(mapped.length);
+            setLoading(false);
+            setLastRefresh(new Date());
+            return;
+        }
         try {
             setError(null);
             const contractId = `${CONTRACT_ADDRESS}.${CONTRACT_NAME}`;
