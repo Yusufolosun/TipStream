@@ -6,11 +6,13 @@ import SendTip from './components/SendTip';
 import OfflineBanner from './components/OfflineBanner';
 import Onboarding from './components/Onboarding';
 import DemoBanner from './components/DemoBanner';
+import MaintenancePage from './components/MaintenancePage';
 import { AnimatedHero } from './components/ui/animated-hero';
 import { ToastContainer, useToast } from './components/ui/toast';
 import { analytics } from './lib/analytics';
 import { useNotifications } from './hooks/useNotifications';
 import { useDemoMode } from './context/DemoContext';
+import { useContractHealth } from './hooks/useContractHealth';
 
 const TipHistory = lazy(() => import('./components/TipHistory'));
 const PlatformStats = lazy(() => import('./components/PlatformStats'));
@@ -27,6 +29,7 @@ function App() {
   const { toasts, addToast, removeToast } = useToast();
   const location = useLocation();
   const { isDemo, enterDemo, exitDemo } = useDemoMode();
+  const { healthy, error: healthError, checking: healthChecking, retry: retryHealth } = useContractHealth();
 
   const userAddress = userData?.profile?.stxAddress?.mainnet || null;
   const { notifications, unreadCount, markAllRead, loading: notificationsLoading } = useNotifications(userAddress);
@@ -87,6 +90,17 @@ function App() {
     { path: '/privacy', label: 'Privacy', icon: '🔒' },
     { path: '/admin', label: 'Admin', icon: '🛠️' },
   ];
+
+  // Show maintenance page if contract is unhealthy (skip in demo mode)
+  if (healthy === false && !isDemo) {
+    return (
+      <MaintenancePage
+        error={healthError}
+        onRetry={retryHealth}
+        checking={healthChecking}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-gray-950 transition-colors">
