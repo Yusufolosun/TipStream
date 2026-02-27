@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { MoveRight, Zap } from "lucide-react";
+import { MoveRight, Zap, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 // Animation configuration for the rotating title text
@@ -8,7 +8,7 @@ const TITLE_ROTATION_INTERVAL_MS = 2000;
 const TITLE_SLIDE_OFFSET_PX = 150;
 const SPRING_STIFFNESS = 50;
 
-function AnimatedHero({ onGetStarted }) {
+function AnimatedHero({ onGetStarted, onTryDemo, loading }) {
     const [titleNumber, setTitleNumber] = useState(0);
     const titles = useMemo(
         () => ["instant", "secure", "transparent", "effortless", "powerful"],
@@ -73,6 +73,7 @@ function AnimatedHero({ onGetStarted }) {
                             size="lg"
                             className="gap-4 bg-slate-900 hover:bg-slate-800 text-white shadow-2xl hover:shadow-slate-200 transition-all transform hover:-translate-y-1 active:scale-95"
                             onClick={onGetStarted}
+                            disabled={loading}
                         >
                             Get Started Now <Zap className="w-4 h-4" />
                         </Button>
@@ -80,11 +81,14 @@ function AnimatedHero({ onGetStarted }) {
                             size="lg"
                             className="gap-4"
                             variant="outline"
-                            onClick={() => window.open('https://github.com/Mosas2000/TipStream#readme', '_blank', 'noopener')}
+                            onClick={onTryDemo}
                         >
-                            Learn More <MoveRight className="w-4 h-4" />
+                            Try Demo <Play className="w-4 h-4" />
                         </Button>
                     </div>
+                    <p className="text-xs text-slate-400 mt-2">
+                        No wallet needed for demo mode
+                    </p>
                 </div>
             </div>
         </div>

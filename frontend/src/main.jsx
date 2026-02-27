@@ -6,15 +6,18 @@ import App from './App.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import { TipProvider } from './context/TipContext.jsx'
 import { ThemeProvider } from './context/ThemeContext.jsx'
+import { DemoProvider } from './context/DemoContext.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>
       <BrowserRouter>
         <ThemeProvider>
-          <TipProvider>
-            <App />
-          </TipProvider>
+          <DemoProvider>
+            <TipProvider>
+              <App />
+            </TipProvider>
+          </DemoProvider>
         </ThemeProvider>
       </BrowserRouter>
     </ErrorBoundary>

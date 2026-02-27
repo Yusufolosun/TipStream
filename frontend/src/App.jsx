@@ -5,10 +5,12 @@ import Header from './components/Header';
 import SendTip from './components/SendTip';
 import OfflineBanner from './components/OfflineBanner';
 import Onboarding from './components/Onboarding';
+import DemoBanner from './components/DemoBanner';
 import { AnimatedHero } from './components/ui/animated-hero';
 import { ToastContainer, useToast } from './components/ui/toast';
 import { analytics } from './lib/analytics';
 import { useNotifications } from './hooks/useNotifications';
+import { useDemoMode } from './context/DemoContext';
 
 const TipHistory = lazy(() => import('./components/TipHistory'));
 const PlatformStats = lazy(() => import('./components/PlatformStats'));
@@ -24,9 +26,13 @@ function App() {
   const [authLoading, setAuthLoading] = useState(false);
   const { toasts, addToast, removeToast } = useToast();
   const location = useLocation();
+  const { isDemo, enterDemo, exitDemo } = useDemoMode();
 
   const userAddress = userData?.profile?.stxAddress?.mainnet || null;
   const { notifications, unreadCount, markAllRead, loading: notificationsLoading } = useNotifications(userAddress);
+
+  // Treat app as "authenticated" when either really signed in or in demo mode
+  const isAuthenticated = !!userData || isDemo;
 
   useEffect(() => {
     if (userSession.isUserSignedIn()) {
@@ -48,6 +54,11 @@ function App() {
       return;
     }
 
+    // Exit demo mode when connecting a real wallet
+    if (isDemo) {
+      exitDemo();
+    }
+
     setAuthLoading(true);
     try {
       await authenticate();
@@ -58,6 +69,11 @@ function App() {
     } finally {
       setAuthLoading(false);
     }
+  };
+
+  const handleTryDemo = () => {
+    enterDemo();
+    addToast('Welcome to demo mode! Explore the platform with simulated data.', 'info');
   };
 
   const navItems = [
@@ -74,19 +90,21 @@ function App() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-gray-950 transition-colors">
+      <DemoBanner />
       <OfflineBanner />
       <Header
         userData={userData}
         onAuth={handleAuth}
         authLoading={authLoading}
-        notifications={notifications}
-        unreadCount={unreadCount}
+        notifications={isDemo ? [] : notifications}
+        unreadCount={isDemo ? 0 : unreadCount}
         onMarkNotificationsRead={markAllRead}
-        notificationsLoading={notificationsLoading}
+        notificationsLoading={isDemo ? false : notificationsLoading}
+        isDemo={isDemo}
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {userData ? (
+        {isAuthenticated ? (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
             <Onboarding />
             <nav className="mb-16 -mx-4 sm:mx-0">
@@ -132,7 +150,7 @@ function App() {
             >
               <Routes>
                 <Route path="/send" element={<SendTip addToast={addToast} />} />
-                <Route path="/activity" element={<TipHistory userAddress={userData.profile.stxAddress.mainnet} />} />
+                <Route path="/activity" element={<TipHistory userAddress={isDemo ? 'SP1DEMO000000000000000000000SANDBOX' : userData.profile.stxAddress.mainnet} />} />
                 <Route path="/feed" element={<RecentTips addToast={addToast} />} />
                 <Route path="/stats" element={<PlatformStats />} />
                 <Route path="/leaderboard" element={<Leaderboard />} />
@@ -145,7 +163,7 @@ function App() {
             </Suspense>
           </div>
         ) : (
-          <AnimatedHero onGetStarted={handleAuth} loading={authLoading} />
+          <AnimatedHero onGetStarted={handleAuth} onTryDemo={handleTryDemo} loading={authLoading} />
         )}
       </main>
 

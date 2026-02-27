@@ -4,15 +4,23 @@ import { network } from '../utils/stacks';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 import { formatSTX } from '../lib/utils';
 import { useTipContext } from '../context/TipContext';
+import { useDemoMode } from '../context/DemoContext';
 
 export default function PlatformStats() {
     const { refreshCounter } = useTipContext();
+    const { isDemo, demoPlatformStats } = useDemoMode();
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [lastRefresh, setLastRefresh] = useState(null);
 
     const fetchPlatformStats = useCallback(async () => {
+        if (isDemo) {
+            setStats(demoPlatformStats);
+            setLoading(false);
+            setLastRefresh(new Date());
+            return;
+        }
         try {
             const result = await fetchCallReadOnlyFunction({
                 network,
@@ -88,9 +96,9 @@ export default function PlatformStats() {
                     >
                         Refresh
                     </button>
-                    <div className="bg-green-100 text-green-700 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest flex items-center">
-                        <span className="h-2 w-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
-                        Live
+                    <div className={`${isDemo ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'} px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest flex items-center`}>
+                        <span className={`h-2 w-2 ${isDemo ? 'bg-amber-500' : 'bg-green-500'} rounded-full mr-2 animate-pulse`}></span>
+                        {isDemo ? 'Demo' : 'Live'}
                     </div>
                 </div>
             </div>

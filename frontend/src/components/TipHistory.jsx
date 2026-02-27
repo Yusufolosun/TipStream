@@ -4,6 +4,7 @@ import { network } from '../utils/stacks';
 import { CONTRACT_ADDRESS, CONTRACT_NAME } from '../config/contracts';
 import { formatSTX, formatAddress } from '../lib/utils';
 import { useTipContext } from '../context/TipContext';
+import { useDemoMode } from '../context/DemoContext';
 import CopyButton from './ui/copy-button';
 import ShareTip from './ShareTip';
 
@@ -21,6 +22,7 @@ const CATEGORY_LABELS = {
 
 export default function TipHistory({ userAddress }) {
     const { refreshCounter } = useTipContext();
+    const { isDemo, demoTips } = useDemoMode();
     const [stats, setStats] = useState(null);
     const [tips, setTips] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -31,6 +33,30 @@ export default function TipHistory({ userAddress }) {
 
     const fetchData = useCallback(async () => {
         if (!userAddress) return;
+
+        // Demo mode: use mock data
+        if (isDemo) {
+            const demoStats = {
+                'tips-sent': { value: '24' },
+                'tips-received': { value: '18' },
+                'total-sent': { value: '156000000' },
+                'total-received': { value: '89000000' },
+            };
+            setStats(demoStats);
+            const mapped = demoTips.map(t => ({
+                event: 'tip-sent',
+                sender: t.sender,
+                recipient: t.recipient,
+                amount: t.amount,
+                message: t.message,
+                category: t.category,
+            }));
+            setTips(mapped);
+            setLoading(false);
+            setLastRefresh(new Date());
+            return;
+        }
+
         try {
             setError(null);
             const [statsResult, tipsResult] = await Promise.all([
