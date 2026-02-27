@@ -104,6 +104,13 @@ export const analytics = {
     incrementMap('errors', key);
   },
 
+  trackPerformance(metric, value, rating) {
+    const metrics = loadMetrics();
+    if (!metrics.webVitals) metrics.webVitals = {};
+    metrics.webVitals[metric] = { value, rating, timestamp: Date.now() };
+    saveMetrics(metrics);
+  },
+
   trackSession() {
     increment('sessions');
   },
@@ -153,6 +160,7 @@ export const analytics = {
       sessions: m.sessions,
       firstSeen: m.firstSeen,
       lastSeen: m.lastSeen,
+      webVitals: m.webVitals || {},
     };
   },
 
