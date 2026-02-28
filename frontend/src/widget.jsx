@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import SendTip from './components/SendTip';
-import { useTipContext, TipProvider } from './context/TipContext';
+import { TipProvider } from './context/TipContext';
+import { DemoProvider } from './context/DemoContext';
 
 const WidgetModal = ({ address, isOpen, onClose }) => {
     if (!isOpen) return null;
@@ -116,9 +117,11 @@ const initWidget = () => {
         shadow.appendChild(mountPoint);
 
         createRoot(mountPoint).render(
-            <TipProvider>
-                <TipWidget address={address} />
-            </TipProvider>
+            <DemoProvider>
+                <TipProvider>
+                    <TipWidget address={address} />
+                </TipProvider>
+            </DemoProvider>
         );
 
         el.dataset.tsInitialized = 'true';
