@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 
 const COPIED_TIMEOUT_MS = 2000;
 
-export default function CopyButton({ text, className = '' }) {
+export default function CopyButton({ text, label = '', className = '' }) {
     const [copied, setCopied] = useState(false);
 
     const handleCopy = useCallback(async () => {
@@ -29,7 +29,7 @@ export default function CopyButton({ text, className = '' }) {
         <button
             onClick={handleCopy}
             title={copied ? 'Copied!' : 'Copy to clipboard'}
-            className={`inline-flex items-center transition-colors ${className}`}
+            className={`inline-flex items-center gap-1 transition-colors ${className}`}
         >
             {copied ? (
                 <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -42,6 +42,7 @@ export default function CopyButton({ text, className = '' }) {
                     />
                 </svg>
             )}
+            {label && <span className="text-xs font-medium">{copied ? 'Copied!' : label}</span>}
         </button>
     );
 }
